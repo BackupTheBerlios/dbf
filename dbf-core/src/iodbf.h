@@ -32,6 +32,9 @@
 #	include <unistd.h>
 #	include <stdlib.h>
 #endif
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 
 int dbf_open (const char *file);
 int dbf_close (int fh, const char *file);

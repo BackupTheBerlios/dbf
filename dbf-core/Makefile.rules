@@ -1,5 +1,5 @@
 # Makefile.rules for dbf
-# Version 0.6
+# Version 0.7
 
 # Compiler flags
 CC = /usr/bin/gcc
@@ -9,8 +9,16 @@ CFLAGS = -Wall
 LOG = make.log
 DIRS = src
 BIN = dbf
-VERSION = 0.6
+VERSION = 0.7
 PREFIX = /usr/local/bin
+
+
+# Compiler settings - do not change
+OBJ = an_string.o codepages.o congraph.o csv.o dbf.o dbfversion.o endian.o iodbf.o sql.o statistic.o 
+HDR = $(OBJ:%.o=%.h) tables.h
+SRC = $(OBJ:%.o=%.c)
+DOC = BUGS CHANGELOG README CREDITS MANIFEST INSTALL FAQ
+
 
 # Layout
 YELLOW = \033[1;33m

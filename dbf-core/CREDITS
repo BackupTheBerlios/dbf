@@ -9,6 +9,10 @@ dbf-core and GUI
 Ross Jones, ross@companyofarchers.org:
 A lot of fixes and a helpful hand while porting dbf to PPC, especially MacOS X.
 
+Mikhail Teterin
+He has mainly written the code for dbf 0.7 and has improved a lot of features
+dbf offers. The entire code was rewritten by him.
+
 
 Contributors:
 =============
@@ -46,5 +50,4 @@ newer versions:
 
 * Uwe Steinmann, uwe@steinmann.cx: PPC
 * Kai Witte, kai@witte-offline.de: PPC
-* John McVeagh: AIX 4.3.3
-* Ivan Tsang: AIX 5.2, gcc 3.3.1
+* John McVeagh: AIX

@@ -1,4 +1,4 @@
-dbf version 0.6
+dbf version 0.7
 dBASE reader and converter for dBASE databases
 Author: Bjoern Berg
 Email: clergyman@gmx.de
@@ -48,7 +48,6 @@ MacOS X		PPC
 Darwin
 *BSD		i386
 AIX 4.3.3
-AIX 5.2
 
 
 Database:
@@ -56,6 +55,10 @@ Database:
 dBASE III
 dBASE IV
 dBASE 5.0
+
+ATTENTION: Since version 0.7 we cannot guarantee, that dbf supports the above 
+mentioned platforms and operating systems any longer because of some major and
+important changes in the code.
 
 
 Compiling and Installation:
@@ -66,6 +69,9 @@ See INSTALL and http://anubisnet.sf.net/support.php for more details.
 
 Usage:
 ======
+
+These commands are for all versions:
+------------------------------------
 
 - in general
 
@@ -94,6 +100,26 @@ created.
 dbf --sql mysql.sql C:\Eigene Dateien\mydb.dbf
 dbf --sql mysql.sql /home/<user>/mydb.dbf
 
+Since dbf 0.7 dbf supports also the following handlers:
+-------------------------------------------------------
+
+--trim {r|l|b} 
+Trims whitespaces in dBASE-files if necessary (r)ight, (l)eft or on (b)oth sides
+of a data set.
+
+--separator {c}
+With the flag separator you are now able to define your own separator between your 
+CSV data sets. The default is ",".
+
+--noconv
+Disables the experimental code page conversion.
+
+--debug {0-9}
+Defines the different debug levels.
+
+
+Comments on some functions:
+---------------------------
 
 - show file statistic
 Since version 0.3.0 the statitical output and information about the fields are no 

@@ -4,10 +4,12 @@
  * Routines for Little Endian and Big Endian Systems
  * Library version
  *
- * Version 0.3, 2003-04-18
+ * Version 0.4, 2003-09-08
  * Author: Björn Berg, clergyman@gmx.de
  *
  * History:
+ * 2003-09-08	berg	changes in u_int types, adapted to different system
+ *						standards
  * 2003-05-09   jones	changes for AIX in IsBigEndian()
  * 2003-04-18	berg	endian.h splitted to endian.h and endian.c
  *						implemented fix by Uwe Steinmann
@@ -76,8 +78,8 @@ short rotate2b(short var) {
  * format.
  *******************************************************************/
 unsigned int
-rotate4b(uint32_t var) {
-	uint32_t old, tmp;
+rotate4b(u_int32_t var) {
+	u_int32_t old, tmp;
 	if(IsBigEndian() == _true) {
 		tmp = old = var;
 		// change Byte 4 with Byte 1

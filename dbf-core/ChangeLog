@@ -4,8 +4,9 @@ Please send suggestions, code pieces and comments directly to the authors
 email address [anubisnet group]
 File sorted in order of date of release
 
-0.9.0	DEVELOPMENT
+0.9.0		DEVELOPMENT
 - (Release-Date)
+- fixed bug in sql export option when a column value is NULL.
 - fixed column statistic if backlink is detected
 - fixed handling of deleted datasets
 - fixed --trim b|r which ate up 1 char strings

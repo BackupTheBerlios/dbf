@@ -9,6 +9,10 @@
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.14  2004/08/30 10:23:29  steinm
+ * - rewrote large parts of writeSQLLine()
+ * - added new functions to handle the option --empty-str-is-null
+ *
  * Revision 1.13  2004/08/28 16:30:46  steinm
  * - many small improvements
  *
@@ -30,12 +34,36 @@
 #include "sql.h"
 
 /* Whether to trim SQL strings from either side: */
-static int	trimright = 0;
-static int	trimleft = 0;
+static int trimright = 0;
+static int trimleft = 0;
+
+/* Whether to use copy instead of insert statements */
+static int usecopy = 0;
+
+/* Whether to add a 'drop table' statement */
 static unsigned int sql_drop_table = 1;
+
+/* Whether to create the sql table */
 static unsigned int sql_create_table = 1;
 
+/* Whether to output NULL for empty strings */
+static int empty_str_is_null = 0;
+
+/* setSQLEmptyStrIsNULL() {{{
+ * Handler for the '--empty-str-is-null' option.
+ * Output NULL for empty strings.
+ */
+int
+setSQLEmptyStrIsNULL(FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *level)
+{
+	empty_str_is_null = 1;
+	return 0;
+}
+/* }}} */
+
 /* setNoDrop() {{{
+ * Handler for the '--nodrop' option.
  * disable output of DROP TABLE statement
  */
 int
@@ -48,6 +76,7 @@ setNoDrop(FILE *output, P_DBF *p_dbf,
 /* }}} */
 
 /* setNoCreate() {{{
+ * Handler for the '--nocreate' option.
  * disable output of CREATE TABLE statement
  */
 int
@@ -59,6 +88,9 @@ setNoCreate(FILE *output, P_DBF *p_dbf,
 }
 /* }}} */
 
+/* setSQLTrim() {{{
+ * Handler for the '--tim char' option.
+ */
 int setSQLTrim(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *mode)
 {
@@ -84,9 +116,22 @@ int setSQLTrim(FILE *fp, P_DBF *p_dbf,
 			return 1;
 	}
 }
+/* }}} */
 
-/* writeSQLHeader */
-/* creates the SQL Header with the information provided by DB_FIELD */
+/* setSQLUsecopy() {{{
+ * Handler for the '--usecopy' option.
+ */
+int setSQLUsecopy(FILE *fp, P_DBF *p_dbf,
+    const char *filename, const char *mode)
+{
+	usecopy = 1;
+	return(0);
+}
+/* }}} */
+
+/* writeSQLHeader() {{{
+ * creates the SQL Header with the information provided by DB_FIELD
+ */
 int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *export_filename)
 {
@@ -187,9 +232,11 @@ int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
 
 	return 0;
 }
+/* }}} */
 
-/* writeSQLLine */
-/* fills the SQL table */
+/* writeSQLLine() {{{
+ * fills the SQL table
+ */
 int
 writeSQLLine (FILE *fp, P_DBF *p_dbf, 
     const unsigned char *value, int header_length,
@@ -222,30 +269,35 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 		/* Remove NULL chars at end of field */
 		while(--end != begin && *end == '\0')
 			;
-		end++;
 
-		if (isdate && begin != end) {
-			/*
-			 * SQL syntax requires quotes around date strings
-			 * t2r@wasalab.com, Oct 2003
-			 */
-			putc('\'', fp);
+		if(begin == end) {
+			fputs("NULL", fp);
+			continue;
 		}
 
-		if (isstring && begin != end) {
-			putc('\'', fp);
-			/*
-			 * Non-string data-fields are right justified
-			 * and don't need right-trimming
-			 */
-			if (trimright) {
-				while (--end != begin && *end == ' ')
-					/* Nothing */;
-					if (end == begin && *end == ' ') {
-						goto endstring;
-					}
-				end++;
+		end++;
+
+		/*
+		 * Non-string data-fields are already right justified
+		 * and don't need right-trimming
+		 */
+		if (isstring && trimright) {
+			while (--end != begin && *end == ' ')
+				;
+			if (end == begin && *end == ' ') {
+				if(empty_str_is_null) {
+					fputs("NULL", fp);
+				} else {
+					putc('\'', fp);
+					putc('\'', fp);
+				}
+				/* Is this the last field? */
+				if (i < columns-1) {
+					putc(',', fp);
+				}
+				continue;
 			}
+			end++;
 		}
 
 		if (trimleft || !isstring) {
@@ -253,25 +305,11 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 				begin++;
 		}
 
-		/*
-		 * If date field value was missing, "valid" data should have been
-		 * written. [...] In my application I can live with date like 1970-01-01.
-		 * - Tommi Rintala, by email, Oct 2003
-		 */
-		/*if (isdate) {
-			fputs("19700101", fp);
-			goto endstring;
-		}*/
-
-		if (begin == end) {
-			if (isstring) {
-				goto endstring;
-			}
-
-			fputs("NULL", fp);
-			goto endfield;
+		if (isdate || isstring) {
+			putc('\'', fp);
 		}
 
+		/* Output the field data */
 		if (isbool) {
 			char sign = *begin++;
 			if ( sign == 't' || sign == 'y' || sign == 'T' || sign == 'Y') {
@@ -304,19 +342,17 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 					default:
 						putc(sign, fp);
 				}
-			} while (begin != end);
+			} while (begin < end);
 
 		}
 
 		if (isstring || isdate)
-		endstring:
 			putc('\'', fp);
 
-		endfield:
-			if (i < columns-1) {
-			/* Not the last field */
-				putc(',', fp);
-			}
+		/* Is this the last field? */
+		if (i < columns-1) {
+			putc(',', fp);
+		}
 
 	}
 	/* Terminate INSERT INTO with ) and ; */
@@ -324,3 +360,13 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 	return 0;
 }
+/* }}} */
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: sw=4 ts=4 fdm=marker
+ * vim<600: sw=4 ts=4
+ */

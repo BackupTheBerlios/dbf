@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src $(DOCDIR)
+SUBDIRS = src po $(DOCDIR)
 
 spec = $(PACKAGE).spec
 

@@ -73,6 +73,7 @@ manpage.1: manpage.sgml
       <arg><option>--keepdel </option></arg>
       <arg><option>--nodrop </option></arg>
       <arg><option>--nocreate </option></arg>
+      <arg><option>--empty-str-is-null </option></arg>
       <arg><option>--separator CHAR</option></arg>
       <arg><option>--tablename NAME</option></arg>
       <arg><option><replaceable>FILE</replaceable></option></arg>
@@ -182,7 +183,8 @@ manpage.1: manpage.sgml
         <listitem>
           <para>Explixitly set the name of the table in the sql output. If
 					  tablename is not set the name of the export file will be
-						used.</para>
+						used. It the export file is stdout the table name must be set,
+						otherwise the program will quit with an error.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -197,7 +199,7 @@ manpage.1: manpage.sgml
         </term>
         <listitem>
           <para>Prevent the output of the sql statement to drop a table.
-					  This option is useful if there is no table to drop and prevent
+					  This option is useful if there is no table to drop and to prevent
 						an error message. The option has only affect in sql output
 						mode.</para>
         </listitem>
@@ -212,6 +214,14 @@ manpage.1: manpage.sgml
 						further records. This option should be used together
 						with <option>--nodrop</option>. The option has only affect in
 						sql output mode.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--empty-str-is-null</option>
+        </term>
+        <listitem>
+          <para>Output empty strings as NULL values in sql output.
+						</para>
         </listitem>
       </varlistentry>
     </variablelist>

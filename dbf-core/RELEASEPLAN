@@ -1,0 +1,74 @@
+Official Release Plan for dbf
+=============================
+
+This plan will list the planned features in different implementation phases and eventually found bugs from release to release.
+
+
+Version 0.4:
+------------
+
+provide support for .dbt (Memo-files)
+
+------------------------------------------------------------------------
+
+Version 0.5:
+------------
+
+provide endianess-save in this version
+
+------------------------------------------------------------------------
+
+Version 0.6:
+------------
+
+Andrew Bokelman <andrew@avoidingspam.com> wrote:
+
+I would like a way to convert tab separated files to DBF.
+
+------------------------------------------------------------------------
+
+Version 0.7:
+------------
+
+John Clapp wrote (dbase.open-source.general):
+
+I've got a program that generates .dbf log files for each month.
+
+What I'd like to do is combine multiple .dbf files into one large .dbf
+file for import into Microsoft Access. I do not have any Dbase or
+Foxpro programs.  Does anyone know of any executable (freeware,
+shareware, etc) that I could use to combine multiple .dbf files?  If I
+combine them with DOS copy it only recognizes the first file - I assume
+due to an end of file marker.
+
+------------------------------------------------------------------------
+
+Version 0.8:
+------------
+
+- SQL-Console to link dbf-files, introducing SQL Commands:
+1) SELECT
+2) UPDATE
+3) DELETE
+4) CREATE TABLE
+
+- needs Simple Search to find automatically the needed (or missing) file to create an SELECT
+
+------------------------------------------------------------------------
+
+
+Version 0.90:
+-------------
+
+build QT-based graphical frontend, idea comes from:
+http://www.os2world.com/freeos2/apps/dbfinfo.html
+
+
+NOTE:
+-----
+
+Special eye on the following projects:
+- dbflib
+- gtkdbfeditor
+
+Maybe we should contact the maintainer...

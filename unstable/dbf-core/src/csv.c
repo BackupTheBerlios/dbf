@@ -1,16 +1,20 @@
 /***********************************************************************************
  * csv.c
- + Implementation
- * Author: Bjoern Berg, March 2003
- * Email: clergyman@gmx.de
+ ***********************************************************************************
  * dbf Reader and Converter for dBASE files
- * Version 0.1
+ * Implementation
+ *
+ * Author: Bjoern Berg, clergyman@gmx.de
+ * Version 0.2, September 2003
+ *
  ***********************************************************************************
  * This includes enable dbf to write CSV files
  ***********************************************************************************
  * History:
- * 2003-03-17	berg	first implementation
- *						copied CSV-specific functions to separate file
+ * 2003-09-08	teterin, berg	complete rewrite of functions
+ *								code cleanup
+ * 2003-03-17	berg			first implementation
+ *								copied CSV-specific functions to separate file
  ***********************************************************************************/
 
 #include "csv.h"
@@ -19,7 +23,7 @@ static char CSVSeparator = ',';
 
 /* allows to change the separator used for CSV output */
 int
-setCSVSep(FILE *fp, const struct DB_FIELD * const header,
+setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
     int header_length, const char *in /* __unused */, const char *separator)
 {
 	if (separator[1]) {
@@ -56,11 +60,20 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 	while (--header_length)
 	{
 		const unsigned char *begin, *end;
-
+		int isstring = (header+1)->field_type == 'M' || (header+1)->field_type == 'C';
+		
 		begin = value;
 		value += (++header)->field_length;
 		end = value - 1;
 
+		/*
+		 * addded to keep to CSV standard:
+		 * Text fields must be enclosed by quotation marks
+		 * - berg, 2003-09-08
+		 */
+		if (isstring)
+			putc('\"', fp);
+		
 		while (*begin == ' ' && begin != end)
 			begin++;
 		if (*begin != ' ') {
@@ -70,6 +83,10 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 				putc(*begin, fp);
 			} while (begin++ != end);
 		}
+
+		if (isstring)
+			putc('\"', fp);
+
 		putc(CSVSeparator, fp);
 	}
 	fputs("\n", fp);

@@ -30,7 +30,8 @@
 void dbf_file_info (struct DB_HEADER *db)
 {    
 	char yk;
-	int *dbfinit;
+/* 	int *dbfinit; */
+	int version, memo;
 	yk = 19;
 	
 	if(db->last_update[0] > 100) {
@@ -38,10 +39,13 @@ void dbf_file_info (struct DB_HEADER *db)
 		yk = 20;
 	}
 	
-	dbfinit = (int*)dbfexamine(db->version);
-	
+/* 	dbfinit = (int*)dbfexamine(db->version); */
+/* 	dbfexamine(db->version, &version, &memo); */
+	version	= db->version  & DBF_VERSION;
+	memo = db->version  & (DBF_MEMO3 | DBF_MEMO4) ;
 	printf("\n-- File statistics\n");
-	printf("dBase version.........: \t %d (%s)\n", dbfinit[0], dbfinit[1]?"with memo":"without memo");
+/* 	printf("dBase version.........: \t %d (%s)\n", dbfinit[0], dbfinit[1]?"with memo":"without memo"); */
+	printf("dBase version.........: \t %d (%s)\n",version, memo?"with memo":"without memo");
 	printf("Date of last update...: \t %d%02d-%02d-%02d\n", yk, db->last_update[0], db->last_update[1], db->last_update[2]);
 	printf("Number of records.....: \t %d (%08xd)\n", rotate4b(db->records), rotate4b(db->records));
 	printf("Length of header......: \t %d (%04xd)\n", rotate2b(db->header_length),

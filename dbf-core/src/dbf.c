@@ -1,20 +1,19 @@
-/***********************************************************************************
+/******************************************************************************
  * dbf.c
- * Author: Bjoern Berg, June 2002
- * Email: clergyman@gmx.de
+ ******************************************************************************
+ * Author: Bjoern Berg <clergyman@gmx.de>
  * dbf Reader and Converter for dBASE files
  * Version 0.8
  *
+ ******************************************************************************
  * History:
- * - Version 0.8 - 2003-11-09
- *   see CHANGELOG for more details
- * - Version 0.7 - September 2003
- *   completely rewritten version by Mikhail Teterin
- *   for a complete list of nower and former changes please have a look at CHANGELOG
- * [...]
- * - Version 0.1 - June 2002
- *	 Output for dBase3 databases, based on a version by Joachim Astel, 1989
- ************************************************************************************/
+ * $Log: dbf.c,v $
+ * Revision 1.7  2003/11/11 15:53:13  rollin_hand
+ * - added fold marks to some functions
+ * - added --version to options
+ * - default options can be set to NULL and are not displayed in help
+ *
+ ******************************************************************************/
 
 #include <assert.h>
 #include "dbf.h"
@@ -28,6 +27,16 @@ unsigned int dbversion = 0x00;
 unsigned int verbosity = 1;
 unsigned int keep_deleted = 0;
 
+
+static void
+banner()
+{
+	fputs("dBase Reader and Converter V. 0.8, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+}
+
+/* dbf_read_header {{{
+ * reads header from file into struct 
+ */
 static int
 dbf_read_header(int fh, const char *file)
 {
@@ -38,9 +47,11 @@ dbf_read_header(int fh, const char *file)
 	dbversion = db->version;
 	return 1;
 }
+/* }}} */
 
-/* getHeaderValues */
-/* fills the struct DB_FIELD with field names and other values*/
+/* getHeaderValues {{{
+ * fills the struct DB_FIELD with field names and other values
+ */
 static int
 getHeaderValues(int fh, const char *file, int header_length)
 {
@@ -60,7 +71,11 @@ getHeaderValues(int fh, const char *file, int header_length)
 	}
 	return 0;
 }
+/* }}} */
 
+/* setNoConv() {{{
+ * defines if charset converter should be used
+ */
 static int
 setNoConv(FILE *output, const struct DB_FIELD * header,
     int header_length,
@@ -69,6 +84,7 @@ setNoConv(FILE *output, const struct DB_FIELD * header,
 	convert = 0;
 	return 0;
 }
+/* }}} */
 
 static int
 setKeepDel (FILE *output, const struct DB_FIELD * header,
@@ -79,6 +95,9 @@ setKeepDel (FILE *output, const struct DB_FIELD * header,
 	return 0;
 }
 
+/* setVerbosity() {{{
+ * sets debug level
+ */
 static int
 setVerbosity(FILE *output, const struct DB_FIELD * header,
     int header_length,
@@ -91,6 +110,7 @@ setVerbosity(FILE *output, const struct DB_FIELD * header,
 	verbosity = level[0] - '0';
 	return 0;
 }
+/* }}} */
 
 static int
 writeINFOHdr(FILE *output, const struct DB_FIELD * header,
@@ -175,17 +195,18 @@ struct options {
 		"{0-9} -- set the debug level. 0 is the quietest",
 		"0"
 	},
+	{
+		"--version", NULL,	NULL,		ARG_NONE,
+		"shows the current release number",
+		NULL
+	},
 	{	NULL	}
 };
 
-static void
-banner()
-{
-	fputs("dBase Reader and Converter V. 0.8, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
-}
 
-/* Help */
-/* Displays a well known UNIX style command line options overview */
+/* Help {{{
+ * Displays a well known UNIX style command line options overview
+ */
 static void
 usage(const char *pname)
 {
@@ -196,14 +217,21 @@ usage(const char *pname)
 	    "Available options:\n", pname);
 
 	for (option = options; option->id; option++)
-		fprintf(stderr, "%c\t%s\t%s\n\t\t(default is %s)\n",
-		    option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
-		    option->id, option->help, option->def_behavior);
+		if (option->def_behavior == NULL) {
+			fprintf(stderr, "%c\t%s\t%s\n",
+		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
+		    	option->id, option->help);	
+		} else {
+			fprintf(stderr, "%c\t%s\t%s\n\t\t(default is %s)\n",
+		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
+		    	option->id, option->help, option->def_behavior);
+		}		
 	fputs("*-marked options are currently mutually exclusive.\n"
 	    "The last specified takes precedence.\n", stderr);
 	fputs("A single dash (``-'') as a filename specifies stdin or stdout\n", stderr);
 	exit(1);
 }
+/* }}} */
 
 int
 main(int argc, char *argv[])
@@ -225,7 +253,15 @@ main(int argc, char *argv[])
 	for(i=1; i < argc; i++)
 		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0 || strcmp(argv[i],"/?")==0)
 			usage(*argv);	/* Does not return */
-
+	
+	/* Check if someone wants only version output */
+	for(i=1; i < argc; i++) {
+		if( strcmp(argv[i],"-v")==0 || strcmp(argv[i],"--version")==0 ) {
+			banner();	
+			exit(1);
+		}	
+	}		
+	
 	/* TODO */
 	/* check architecture: little-endian/big-endian XXX Should be done at compile time! */
 	isbigendian = IsBigEndian();

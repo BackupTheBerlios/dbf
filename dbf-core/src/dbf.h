@@ -7,6 +7,9 @@
  * 
  * History:
  * $Log: dbf.h,v $
+ * Revision 1.13  2004/08/30 12:04:08  steinm
+ * - added typedef for footerMethod
+ *
  * Revision 1.12  2004/08/30 10:24:25  steinm
  * - removed include file an_string.h
  *
@@ -79,6 +82,9 @@ extern char *tablename;
  */
 
 typedef int	(*headerMethod)(FILE *output, P_DBF * p_dbf,
+    const char *filename, const char *export_filename);
+
+typedef int	(*footerMethod)(FILE *output, P_DBF * p_dbf,
     const char *filename, const char *export_filename);
 
 typedef int	(*lineMethod)(FILE *output, P_DBF * p_dbf,

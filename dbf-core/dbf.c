@@ -42,7 +42,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-/*#define NEWLINE_LENGTH 1*/
 #include <limits.h>
 #ifdef __unix__	
 	#include <sys/stat.h>
@@ -55,6 +54,9 @@
 	#include <io.h>
 	#include <sys\stat.h>
     #define NEWLINE_LENGTH 2
+#else
+    // We now have a default of 1 for /n style unix newlines
+    #define NEWLINE_LENGTH 1
 #endif
 #define VERSION1 0
 #define VERSION2 5
@@ -137,7 +139,6 @@ int writeCSVHeader (int fh, struct DB_FIELD *header[], int header_length)
 		{
 			printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
 		}
-		free(buffer);												
 	}
 	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
 		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
@@ -177,8 +178,6 @@ int writeCSVLine (int fh, char *value, int header_length) {
 	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
 		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
 	}
-	free(buffer);
-	free(NewString);
 	return 0;				
 }
 

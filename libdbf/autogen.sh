@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # autogen.sh glue for CMU Cyrus IMAP
-# $Id: autogen.sh,v 1.4 2004/09/15 20:45:04 rollinhand Exp $
+# $Id: autogen.sh,v 1.5 2005/03/04 19:35:26 rollinhand Exp $
 #
 # Requires: automake, autoconf, dpkg-dev
 set -e
@@ -22,14 +22,16 @@ echo " OK"
 # This test-case is e.g. needed for SuSE distributions
 automk="automake"
 test ! -d /usr/share/automake && {
-	version=`automake --version | head -n 1 | awk '{print $4}' | awk -F. '{print $1$2}'`
+	version=`automake --version | head -n 1 | awk '{print $4}' | awk -F. '{print $1"."$2}'`
 	automk="automake-${version}"
 }
+
+echo ${automk}
  	
 for i in config.guess config.sub missing install-sh mkinstalldirs ; do
 	test -r /usr/share/${automk}/${i} && {
 		rm -f ${i}
-		cp /usr/share/automake/${i} .
+		cp /usr/share/${automk}/${i} .
 	}
 	chmod 755 ${i}
 done

@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.23  2004/08/30 10:25:50  steinm
+ * - handle new options --empty-str-is-null and --usecopy
+ *
  * Revision 1.22  2004/08/28 16:30:57  steinm
  * - various new options
  *
@@ -117,12 +120,13 @@ export_close(FILE *fp, const char *file)
 	if (fp == stdout)
 		return 0;
 	if (fclose(fp)) {
-		fprintf(stderr, _("Cannot close File "));
-		perror(file);
+		fprintf(stderr, _("Cannot close output file '%s'."), file);
+		fprintf(stderr, "\n");
+		perror("Error");
 		return 1;
 	}
 	if (verbosity > 2) {
-		fprintf(stderr, _("Export file %s was closed successfully."), file);
+		fprintf(stderr, _("Output file '%s' was closed successfully."), file);
 		fprintf(stderr, "\n");
 	}
 	return 0;
@@ -351,6 +355,16 @@ struct options {
 	{
 		"--nocreate",	setNoCreate,	NULL,		ARG_BOOLEAN,
 		"disable CREATE TABLE statement in sql output",
+		NULL
+	},
+	{
+		"--usecopy",	setSQLUsecopy,	NULL,		ARG_BOOLEAN,
+		"use COPY instead of INSERT for populating table",
+		NULL
+	},
+	{
+		"--empty-str-is-null",	setSQLEmptyStrIsNULL,	NULL,		ARG_BOOLEAN,
+		"ouput NULL for empty strings in sql output",
 		NULL
 	},
 	{

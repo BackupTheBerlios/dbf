@@ -8,6 +8,8 @@
  * Author: Björn Berg, clergyman@gmx.de
  *
  * History:
+ * 2003-02-09	jones	improved IsBigEndian function
+ *						changes in rotate4b
  * 2003-02-01	berg	rotate2b / rotate4b added	
  * 2002-12-12	berg	first implementation
  **************************************************/	
@@ -21,9 +23,6 @@
 
 #define _true 0x01
 #define _false 0x00
-
-int IsBigEndian();
-int rotateshort(short);
 #endif
 
 // Routine to test if System uses Big Endian

@@ -9,7 +9,12 @@ File sorted in order of date of release
 - Changed the options parsing system and the options id, so that options
   with a single hyphen can also be used and displayed in the help.
 - Inserted a fail safe routine which checks that the original file will
-  never be overwritten if the options filename is missing  			
+  never be overwritten if the options filename is missing
+- Tab-separated files without quoted text-passages can be created by using
+  't' as separator.
+- Fix for date strings in SQL: According the PostgreSQL manual, SQL (ANSI) requires 
+  date strings to be quoted, ie. '20031029' 
+  send in by Tommi Rintala, t2r@wasalab.com     			
 
 
 0.7		STABLE

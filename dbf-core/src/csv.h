@@ -9,6 +9,9 @@
  ******************************************************************************
  * History:
  * $Log: csv.h,v $
+ * Revision 1.7  2004/08/30 10:24:56  steinm
+ * - removed include file an_string.h
+ *
  * Revision 1.6  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -44,7 +47,6 @@
 /*
  * Special anubisnet includes
  */
-#include "an_string.h"
 #include "dbf.h"
 
 int setCSVSep (FILE *fp, P_DBF * p_dbf,

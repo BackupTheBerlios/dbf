@@ -1,0 +1,3 @@
+/usr/bin/gcc -Wall -c sql.c      
+/usr/bin/gcc -Wall -c statistic.c      
+/usr/bin/gcc -Wall -o dbf an_string.o codepages.o congraph.o csv.o dbf.o dbfversion.o endian.o iodbf.o sql.o statistic.o 	

@@ -6,6 +6,8 @@ File sorted in order of date of release
 
 0.9.0		DEVELOPMENT
 - (Release-Date)
+- Endian-Swapping is now centralized for a better Performance
+- Table Dropping and Creation can be now deactivated
 - fixed bug in sql export option when a column value is NULL.
 - fixed column statistic if backlink is detected
 - fixed handling of deleted datasets

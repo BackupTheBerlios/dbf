@@ -1,6 +1,6 @@
-/***********************************************************************************
+/*****************************************************************************
  * sql.c
- ***********************************************************************************
+ *****************************************************************************
  * conversion of dbf files to sql
  * 
  * Author: 	Dr Georg Roesler, groesle@gwdg.de
@@ -9,6 +9,9 @@
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.13  2004/08/28 16:30:46  steinm
+ * - many small improvements
+ *
  * Revision 1.12  2004/08/27 09:18:55  steinm
  * - use gettext for outputing text
  *
@@ -21,28 +24,37 @@
  * Revision 1.9  2004/01/03 15:42:40  rollinhand
  * fixed problems with NULL values
  *
- ************************************************************************************/
+ ****************************************************************************/
 
-#include <libdbf/libdbf.h>
+#include "dbf.h"
 #include "sql.h"
-#include "csv.h"
-#ifndef __DBF_CORE_
-  #include "dbf.h"
-#endif
 
-static size_t	tablelen;
 /* Whether to trim SQL strings from either side: */
 static int	trimright = 0;
 static int	trimleft = 0;
+static unsigned int sql_drop_table = 1;
+static unsigned int sql_create_table = 1;
 
 /* setNoDrop() {{{
- * defines if charset converter should be used
+ * disable output of DROP TABLE statement
  */
 int
 setNoDrop(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	sql_drop_table = 0;
+	return 0;
+}
+/* }}} */
+
+/* setNoCreate() {{{
+ * disable output of CREATE TABLE statement
+ */
+int
+setNoCreate(FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *level)
+{
+	sql_create_table = 0;
 	return 0;
 }
 /* }}} */
@@ -78,102 +90,100 @@ int setSQLTrim(FILE *fp, P_DBF *p_dbf,
 int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *export_filename)
 {
-	int unsigned l1,l2;
-	int i, columns;
-
-	columns = dbf_NumCols(p_dbf);
-	tablelen = strlen(export_filename) - 4; /* Also used by the line-method */
-
 	fprintf(fp, "-- %s -- \n--\n"
 	    "-- SQL code with the contents of dbf file %s\n\n", export_filename, filename);
-	if ( sql_drop_table ) {
-		fprintf(fp, "\nDROP TABLE %.*s;\n"
-	    	"\nCREATE TABLE %.*s (\n",
-	    	tablelen, export_filename,
-	    	tablelen, export_filename);
-	}   
-		    
 
-	for (i = 0; i < columns; i++) {
-		char field_type;
-		const char *field_name;
-		int field_length, field_decimals;
-		field_type = dbf_ColumnType(p_dbf, i);
-		field_name = dbf_ColumnName(p_dbf, i);
-		field_length = dbf_ColumnSize(p_dbf, i);
-		field_decimals = dbf_ColumnDecimals(p_dbf, i);
-		fprintf(fp, "  %s\t", field_name);
-		switch(field_type) {
-			case 'C':
-				/*
-				 * SQL 2 requests "character varying" at this point,
-				 * but oracle, informix, db2, MySQL and PGSQL
-				 * support also "varchar". To be compatible to most
-				 * SQL databases we should use varchar for the moment.
-				 * - berg, 2003-09-08
-				 */
-				fprintf(fp, "varchar(%d)", field_type == 'M' ? 10 : field_length);
-			break;
-			case 'M':
-				/*
-				 * M stands for memo fields which are currently not
-				 * supported by dbf.
-				 * - berg, 2003-09-08
-				 */
-				fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not yet supported."));
-				return 1;
-			break;
-			case 'I':
-				fputs("int", fp);
-			break;
-			case 'N':
-				l1 = field_length;
-				l2 = field_decimals;
-				if((l1 < 10) && (l2 == 0))
+	if ( sql_drop_table ) {
+		fprintf(fp, "\nDROP TABLE %s;\n", tablename);
+	}   
+	if ( sql_create_table ) {
+		int unsigned l1,l2;
+		int i, columns;
+
+		fprintf(fp, "\nCREATE TABLE %s (\n", tablename);
+
+		columns = dbf_NumCols(p_dbf);
+		for (i = 0; i < columns; i++) {
+			char field_type;
+			const char *field_name;
+			int field_length, field_decimals;
+			field_type = dbf_ColumnType(p_dbf, i);
+			field_name = dbf_ColumnName(p_dbf, i);
+			field_length = dbf_ColumnSize(p_dbf, i);
+			field_decimals = dbf_ColumnDecimals(p_dbf, i);
+			fprintf(fp, "  %-11s ", field_name);
+			switch(field_type) {
+				case 'C':
+					/*
+					 * SQL 2 requests "character varying" at this point,
+					 * but oracle, informix, db2, MySQL and PGSQL
+					 * support also "varchar". To be compatible to most
+					 * SQL databases we should use varchar for the moment.
+					 * - berg, 2003-09-08
+					 */
+					fprintf(fp, "varchar(%d)", field_type == 'M' ? 10 : field_length);
+				break;
+				case 'M':
+					/*
+					 * M stands for memo fields which are currently not
+					 * supported by dbf.
+					 * - berg, 2003-09-08
+					 */
+					fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not supported."));
+					return 1;
+				break;
+				case 'I':
 					fputs("int", fp);
-				else
-					fprintf(fp, "numeric(%d, %d)",
-					    l1, l2);
-			break;
-			case 'F':
-				l1 = field_length;
-				l2 = field_decimals;
-				fprintf(fp, "numeric(%d, %d)", l1, l2);
-			break;
-			case 'B': {
-				/*
-				 * In VisualFoxPro 'B' stands for double so it is an int value
-				 */
-				int dbversion = dbf_GetVersion(p_dbf);
-				if ( dbversion == VisualFoxPro ) {
+				break;
+				case 'N':
+					l1 = field_length;
+					l2 = field_decimals;
+					if((l1 < 10) && (l2 == 0))
+						fputs("int", fp);
+					else
+						fprintf(fp, "numeric(%d,%d)",
+								l1, l2);
+				break;
+				case 'F':
 					l1 = field_length;
 					l2 = field_decimals;
 					fprintf(fp, "numeric(%d, %d)", l1, l2);
-				} else if ( dbversion == dBase3 ) {
-				    fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not supported."));
-					return 1;
-				}
+				break;
+				case 'B': {
+					/*
+					 * In VisualFoxPro 'B' stands for double so it is an int value
+					 */
+					int dbversion = dbf_GetVersion(p_dbf);
+					if ( dbversion == VisualFoxPro ) {
+						l1 = field_length;
+						l2 = field_decimals;
+						fprintf(fp, "numeric(%d, %d)", l1, l2);
+					} else if ( dbversion == dBase3 ) {
+							fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not supported."));
+						return 1;
+					}
 
-			break;
+				break;
+				}
+				case 'D':
+					fputs("date", fp);
+				break;
+				case 'L':
+					/*
+					 * Type logical is not supported in SQL, you have to use number
+					 * resp. numeric to keep to the standard
+					 */
+					 fprintf(fp, "boolean");
+				break;
+				default:
+					fprintf(fp, "/* unsupported type ``%c'' */", field_type);
 			}
-			case 'D':
-				fputs("date", fp);
-			break;
-			case 'L':
-				/*
-				 * Type logical is not supported in SQL, you have to use number
-				 * resp. numeric to keep to the standard
-				 */
-				 fprintf(fp, "boolean");
-			break;
-			default:
-				fprintf(fp, "/* unsupported type ``%c'' */", field_type);
+			if (i < columns-1)
+				fputc(',', fp);
+			fputs("\n", fp);
 		}
-		if (i > 0)
-			fputc(',', fp);
-		fputs("\n", fp);
+		fputs(");\n\n", fp);
 	}
-	fputs(");\n", fp);
 
 	return 0;
 }
@@ -189,8 +199,7 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 	columns = dbf_NumCols(p_dbf);
 
-	fprintf(fp, "INSERT INTO %.*s VALUES (",
-	    tablelen, export_filename);
+	fprintf(fp, "INSERT INTO %s VALUES (", tablename);
 
 	for (i = 0; i < columns; i++) {
 		const unsigned char *end, *begin;

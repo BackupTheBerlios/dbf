@@ -7,7 +7,8 @@
  *																					
  * History:
  * - Version 0.5
- *   all SQL functions are commented due to compiler problems	
+ *   all SQL functions are commented due to compiler problems
+ *	 see CHANGELOG for more details	
  * - Version 0.5beta02 - 07.02.2003
  *   changes in help()
  *	 Big Endian Check Override Flag
@@ -189,7 +190,7 @@ void show_help(char *pname) {
 	printf("\n  --csv [csv-file] \t convert dBASE File to csv (readable with spread sheets)");
     /*printf("\n  --sql [sql-file] \t converts dBASE File to sql (tested with Postgres)");*/ 	
 	printf("\n  --view-info \t\t displays statistics about current dbf file");
-	printf("\n  --ppc \t\t force dbf not to check the system architecture");
+	/*printf("\n  --ppc \t\t force dbf not to check the system architecture");*/
 	printf("\n\nPlease note that the current version automatically detects\n\
 the codepage used in the dbf file.\n\
 At the moment only english, american and western european codepages are supported.\n");				 
@@ -234,12 +235,12 @@ int main (int argc, char *argv[])
 		printf("Override: Do not check on Big Endian / Little Endian System\n");
 	} else isbigendian = IsBigEndian();	 	
 	
-	if(isbigendian == _true) {
+	/*if(isbigendian == _true) {
 		printf("System: Big Endian\n");
 		printf("The current version does not support architectures using Big Endian coding\n");
 		printf("A B O R T I N G!\n");
 		exit(1);
-	} else printf("System: Little Endian\n");
+	} else printf("System: Little Endian\n");*/
 	
 	/* fill filename with last argument */
 	/* Test if last argument is an option or a possible valid filename */
@@ -355,8 +356,8 @@ int main (int argc, char *argv[])
 		  	} /* End of --> inner if */		  
 		} /* End of --> while */
 	} /* End of --> if dbfhandle */
-	dbf_close(dbfhandle,filename);
-	export_close(handle,export_filename);
+	if (filename) dbf_close(dbfhandle,filename);
+	if (export_filename) export_close(handle,export_filename);
 
 	return 0;
 }

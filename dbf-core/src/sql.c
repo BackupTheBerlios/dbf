@@ -8,7 +8,7 @@
  *			Björn Berg, clergyman@gmx.de
  *
  *****************************************************************************
- * $Id: sql.c,v 1.16 2004/08/30 12:03:41 steinm Exp $
+ * $Id: sql.c,v 1.17 2004/09/07 15:52:42 steinm Exp $
  ****************************************************************************/
 
 #include "dbf.h"
@@ -246,7 +246,7 @@ int writeSQLFooter (FILE *fp, P_DBF *p_dbf,
  */
 int
 writeSQLLine (FILE *fp, P_DBF *p_dbf, 
-    const unsigned char *value, int header_length,
+    const unsigned char *value, int record_length,
     const char *filename, const char *export_filename)
 {
 	int i, columns;

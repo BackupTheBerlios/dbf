@@ -21,7 +21,7 @@ It can also be used to show some statistics about the content.
 %setup
 
 %build
-./configure --prefix=%prefix --with-sqlite --mandir=%prefix/share/man --infodir=%prefix/share/info
+./configure --prefix=%prefix --mandir=%prefix/share/man --infodir=%prefix/share/info
 make
 
 %install

@@ -12,6 +12,10 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.12  2003/11/12 08:50:32  steinm
+ * - simplyfied the masking of the separator char within a value of a field
+ * - fixed the masking. The separator char is masked with another separator char
+ *
  * Revision 1.11  2003/11/12 07:51:02  steinm
  * - put variable declaration at start of function because some older
  *   gcc can handle it otherwise
@@ -38,6 +42,7 @@
 /* CSVFileType describes the type the converted file is of: (C)SV or (T)SV */
 static char CSVFileType = 'C';
 static char CSVSeparator = ',';
+static char CSVEnclosure = '"';
 static int CSVTableStructure = 1;
 
 /* setCSVSep() {{{
@@ -124,7 +129,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		 * - berg, 2003-09-08
 		 */
 		if ( isstring && CSVFileType == 'C' )
-			putc('\"', fp);
+			putc(CSVEnclosure, fp);
 		
 		while (*begin == ' ' && begin != end)
 			begin++;
@@ -142,23 +147,17 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 				begin += header->field_length;
 			} else {
 				do {
-					char sign = *begin;	/* cast operations */
-					switch (sign) {						
-						case '\"':
-							putc('\\', fp);
-							putc('\"', fp);
-						break;	
-						default:					
-							putc(sign, fp);						
+					/* mask enclosure char */
+					if(*begin == CSVEnclosure) {
+							putc(CSVEnclosure, fp);
 					}				
-					
-					/*putc(*begin, fp);*/
+					putc(*begin, fp);
 				} while (begin++ != end);
 			}	
 		}
 
 		if ( isstring && CSVFileType == 'C')
-			putc('\"', fp);
+			putc(CSVEnclosure, fp);
 
 		if(header_length > 1)
 			putc(CSVSeparator, fp);

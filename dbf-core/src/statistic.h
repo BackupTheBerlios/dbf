@@ -14,7 +14,7 @@
 #include "congraph.h"
 #include "endian.h"
 
-char *get_db_version (int version);
+static const char *get_db_version (int version);
 void dbf_file_info (const struct DB_HEADER *db);
 void dbf_field_stat (const struct DB_FIELD *header, int header_length);
 

@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.6  2004/04/19 18:32:47  rollinhand
+ * get_db_version can static, should handle unexpected values
+ *
  * Revision 1.5  2004/03/16 20:56:30  rollinhand
  * Endian Swapping centralized in dbf_read_header
  *
@@ -19,43 +22,36 @@
 #include "dbf.h"
 
 
-char *get_db_version (int version) {
-	char *name;
+static const char *get_db_version (int version) {
+	static char name[31];
 
 	switch (version) {
 		case 0x02:
 			// without memo fields
-			name = "FoxBase";
-			break;
+			return "FoxBase";
 		case 0x03:
 			// without memo fields
-			name = "FoxBase+/dBASE III+";
-			break;
+			return "FoxBase+/dBASE III+";
 		case 0x04:
 			// without memo fields
-			name = "dBASE IV";
-			break;
+			return "dBASE IV";
 		case 0x05:
 			// without memo fields
-			name = "dBASE 5.0";
-			break;
+			return "dBASE 5.0";
 		case 0x83:
-			name = "FoxBase+/dBASE III+";
-			break;
+			return "FoxBase+/dBASE III+";
 		case 0x8B:
-			name = "dBASE IV";
-			break;
+			return "dBASE IV";
 		case 0x30:
 			// without memo fields
-			name = "Visual FoxPro";
-			break;
+			return "Visual FoxPro";
 		case 0xF5:
 			// with memo fields
-			name = "FoxPro 2.0";
-			break;
+			return "FoxPro 2.0";
+		default:
+			sprintf(name, "Unknown (code 0x%.2X)", version);
+			return name;
 	}
-
-	return name;
 }
 
 

@@ -7,9 +7,9 @@ File sorted in order of date of release
 0.9.0		DEVELOPMENT
 - (Release-Date)
 - use libdbf for dBASE file access
-- added option --nocreate, --tablename
+- added option --nocreate, --tablename, --empty-str-is-null
 - various speed improvements
-- nicer formating of sql output
+- nicer formating of sql output, partial rewrite of code
 - major update of man page
 - Endian-Swapping is now centralized for a better Performance
 - Table Dropping and Creation can be now deactivated

@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.22  2004/08/28 16:30:57  steinm
+ * - various new options
+ *
  * Revision 1.21  2004/08/27 06:43:35  steinm
  * - started translation of strings
  * - removed a lot of old code
@@ -48,7 +51,7 @@
  * while no conversion option is given, dbf can return a null pointer in line 345 ->fixed
  * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
  *
- ******************************************************************************/
+ *****************************************************************************/
 
  /** TODO **/
  /* Currently we do not know how to handle field subrecords in FoxPro and dBASE 4
@@ -61,13 +64,11 @@
 static struct DB_FSIZE *fsz;
 
 static int convert = 1;
+static int keep_deleted = 0;
+static int dbc = 0;   /* 0 = no backlink, 1 = backlink */
 
 unsigned int verbosity = 1;
-unsigned int keep_deleted = 0;
-unsigned int sql_drop_table = 1;
-
-/* 0 = no backlink, 1 = backlink */
-unsigned int dbc = 0;
+char *tablename = NULL;
 
 
 /* banner() {{{
@@ -75,7 +76,19 @@ unsigned int dbc = 0;
 static void
 banner()
 {
-	fprintf(stderr, _("dBase Reader and Converter V. " VERSION ", (c) 2002 - 2004 by Bjoern Berg"));
+	fprintf(stderr, PACKAGE_NAME " " VERSION);
+	fprintf(stderr, "\n");
+	fprintf(stderr, _("Copyright 2002-2004 Bjoern Berg"));
+	fprintf(stderr, "\n");
+}
+/* }}} */
+
+/* version() {{{
+ */
+static void
+version()
+{
+	fprintf(stderr, VERSION);
 	fprintf(stderr, "\n");
 }
 /* }}} */
@@ -146,7 +159,8 @@ static int dbf_backlink_exists(int fh, const char *file)
 	number_of_fields = (db->header_length - 296) / 32;
 
 	if ( (number_of_fields != db->records) && *pt != 0x0D) {
-		fprintf(stderr, "Database backlink found!\n");
+		fprintf(stderr, "Database backlink found!");
+		fprintf(stderr, "\n");
 		return 1;
 	}
 
@@ -185,6 +199,18 @@ dbf_check(int fh, const char *file)
 #endif
 /* }}} */
 
+/* setTablename() {{{
+ * set the name of the table for sql output
+ */
+static int
+setTablename(FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *_tablename)
+{
+	tablename = strdup(_tablename);
+	return 0;
+}
+/* }}} */
+
 /* setNoConv() {{{
  * defines if charset converter should be used
  */
@@ -197,6 +223,8 @@ setNoConv(FILE *output, P_DBF *p_dbf,
 }
 /* }}} */
 
+/* setKeepDel() {{{
+ */
 static int
 setKeepDel (FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
@@ -204,6 +232,7 @@ setKeepDel (FILE *output, P_DBF *p_dbf,
 	keep_deleted = 1;
 	return 0;
 }
+/* }}} */
 
 /* setVerbosity() {{{
  * sets debug level
@@ -222,6 +251,8 @@ setVerbosity(FILE *output, P_DBF *p_dbf,
 }
 /* }}} */
 
+/* writeINFOHdr() {{{
+ */
 static int
 writeINFOHdr(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *export_filename)
@@ -230,6 +261,7 @@ writeINFOHdr(FILE *output, P_DBF *p_dbf,
 	dbf_field_stat(p_dbf);
 	return 0;
 }
+/* }}} */
 
 /* printDBF() {{{
  * printDBF is the real function that is hidden behind writeLine
@@ -260,7 +292,7 @@ printDBF(FILE *output, P_DBF *p_dbf,
 
 /*}}} */
 
-/*
+/* Options {{{
  * Added the hyphes to the id so that ids with a single hyphe are also possible.
  * -- Bjoern Berg, 2003-10-06
  */
@@ -278,45 +310,53 @@ struct options {
 } options[] = {
 	{
 		"--sql",	writeSQLHeader,	writeSQLLine,	ARG_OUTPUT,
-		"{filename} -- writes the table-creating SQL code into the file",
-		"to write to stdout in human-readable form"
+		"{filename} -- convert file into sql statements",
+		NULL
 	},
 	{
 		"--trim",	setSQLTrim,	writeSQLLine,	ARG_OPTION,
-		"{r|l|b} -- whether to trim the string fields in the SQL output\n"
-		"\t\tfrom right, left, or both",
+		"{r|l|b} -- trim char fields in sql output (right, left, both)",
 		"not to trim"
 	},
 	{
 		"--csv",	writeCSVHeader,	writeCSVLine,	ARG_OUTPUT,
-		"{filename} -- outputs the \"Comma Separated Values\" represenation\n"
-		"\t\tof the dBASE table into the specified file",
-		"to write to stdout in human-readable form"
+		"{filename} -- convert file into \"comma separated values\"",
+		NULL
 	},
 	{
 		"--separator",	setCSVSep,	NULL,		ARG_OPTION,
-		"{c} -- sets the separator character for the CSV format",
+		"{c} -- set field separator for csv format",
 		"to use ``,''"
 	},	
 	{
+		"--tablename",	setTablename,	NULL,		ARG_OPTION,
+		"{name} -- set name of the table for sql output",
+		"the name of the export file"
+	},	
+	{
 		"--view-info",	writeINFOHdr,	NULL,		ARG_NONE,
-		"write the dBASE file's headers and stats to stdout",
-		"not to output the stats"
+		"write various information and table structure to stdout",
+		NULL
 	},
 	{
 		"--noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
-		"do not run each each record through charset converters",
+		"do not run each record through charset converters",
 		"to use the experimental converters"
 	},
 	{
 		"--nodrop",	setNoDrop,	NULL,		ARG_BOOLEAN,
-		"disable DROP/CREATE statements in SQL export",
+		"disable DROP TABLE statement in sql output",
+		NULL
+	},
+	{
+		"--nocreate",	setNoCreate,	NULL,		ARG_BOOLEAN,
+		"disable CREATE TABLE statement in sql output",
 		NULL
 	},
 	{
 		"--keepdel",	setKeepDel,	NULL,		ARG_NONE,
-		"converts also deleted datasets",
-		"do no conversion"
+		"output also deleted records",
+		"to skip deleted records"
 	},
 	{
 		"--debug",	setVerbosity,	NULL,		ARG_OPTION,
@@ -330,9 +370,9 @@ struct options {
 	},
 	{	NULL	}
 };
+/* }}} */
 
-
-/* Help {{{
+/* usage() {{{
  * Displays a well known UNIX style command line options overview
  */
 static void
@@ -342,24 +382,21 @@ usage(const char *pname)
 	banner();
 	fprintf(stderr, _("Usage: %s [options] dbf-file"), pname);
 	fprintf(stderr, "\n");
-	fprintf(stderr, _("Output the contents of the dBASE table file (.dbf)."));
+	fprintf(stderr, _("Output the contents of a dBASE table file (.dbf)."));
 	fprintf(stderr, "\n\n");
 	fprintf(stderr, _("Available options:"));
 	fprintf(stderr, "\n");
 
-	for (option = options; option->id; option++)
-		if (option->def_behavior == NULL) {
-			fprintf(stderr, "%c\t%s\t%s\n",
-		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
-		    	option->id, option->help);
-		} else {
-			fprintf(stderr, "%c\t%s\t%s\n\t\t(default is %s)\n",
-		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
-		    	option->id, option->help, option->def_behavior);
-		}
-	fprintf(stderr, _("Options marked with ``*'' are currently mutually exclusive."));
+	for (option = options; option->id; option++) {
+		fprintf(stderr, "  %-11s %s\n",
+	    	option->id, option->help);
+		if (option->def_behavior != NULL)
+			fprintf(stderr, "  %-11s (default is %s)\n", "", option->def_behavior);
+	}
 	fprintf(stderr, "\n");
-	fprintf(stderr, _("The last specified takes precedence."));
+	fprintf(stderr, _("The options --sql, --csv, --view-info, --version are mutually exclusive."));
+	fprintf(stderr, "\n");
+	fprintf(stderr, _("The last option specified takes precedence."));
 	fprintf(stderr, "\n");
 	fprintf(stderr, _("A single dash (``-'') as a filename specifies stdin or stdout"));
 	fprintf(stderr, "\n");
@@ -367,6 +404,8 @@ usage(const char *pname)
 }
 /* }}} */
 
+/* main() {{{
+ */
 int
 main(int argc, char *argv[])
 {
@@ -379,8 +418,15 @@ main(int argc, char *argv[])
 	unsigned char	*record;
 	unsigned int dataset_deleted;
 
+#ifdef ENABLE_NLS
+	setlocale (LC_ALL, "");
+	setlocale (LC_NUMERIC, "C");
+	bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+	textdomain (GETTEXT_PACKAGE);
+#endif
+
 	if (argc < 2) {
-		fprintf(stderr, "Usage: %s [option][argument] dbf-file, -h for help\n", *argv);
+		usage(PACKAGE_NAME);	/* Does not return */
 		exit(1);
 	}
 
@@ -402,12 +448,17 @@ main(int argc, char *argv[])
 	 */
 	filename = argv[--argc];
 	if (filename[0] == '-' && filename[1] != '\0') {
-		fprintf(stderr, "\nERROR: Found no file for input\n"
-		    "Please make sure that the last argument is a valid dBASE file\n");
+		fprintf(stderr, _("No input file specified. Please make sure that the last argument is a valid dBASE file."));
+		fprintf(stderr, "\n");
 		exit(1);
 	}
 
-	p_dbf = dbf_Open(filename);
+	/* Open the input dBASE file */
+	if(NULL == (p_dbf = dbf_Open(filename))) {
+		fprintf(stderr, _("Could not open dBASE file '%s'."), filename);
+		fprintf(stderr, "\n");
+		exit(1);
+	}
 
 	/* Scan through arguments looking for options
 	 */
@@ -419,45 +470,44 @@ main(int argc, char *argv[])
 			option++;
 		if (option->id == NULL) {
 		badarg:
-			fprintf(stderr, "Unrecognized option ``%s''. "
-			    "Try ``--help'' for usage\n", argv[i]);
+			fprintf(stderr, _("Unrecognized option ``%s''. Try ``--help'' for a list of options."), argv[i]);
+			fprintf(stderr, "\n");
 			exit(1);
 		}
 		switch (option->argument) {
-		case ARG_OUTPUT:
-			if (export_filename) {
-				fprintf(stderr,
-				    "Output file name was already specified as ``%s''.\n"
-				    "Try the --help option\n",
-				    export_filename);
-				exit(1);
-			}
-			export_filename = argv[++i];
-			/* Fail safe routine to keep sure that the original file can
-			 * never be overwritten
-			 */
-			if ( strcmp(export_filename, filename) == 0 ) {
-				fprintf(stderr, "\nERROR: Input file same as output file\n"
-					"Please change the name of the output file or refer to the help.\n");
-				exit(1);
-			}
-			/* FALLTHROUGH */
-		case ARG_NONE:
-			writeHeader = option->writeHeader;
-			writeLine = option->writeLine;
-			break;
-		case ARG_OPTION:
-			i++;
-			/* FALLTHROUGH */
-		case ARG_BOOLEAN:
-			/* There can be many -- call them all: */
-			if (option->writeHeader &&
-			    option->writeHeader(NULL, p_dbf,
-			    filename, argv[i]))
-				exit (1);
-			break;
-		default:
-			assert(!"Unknown type of option argument");
+			case ARG_OUTPUT:
+				if (export_filename) {
+					fprintf(stderr,
+						_("Output file name was already specified as ``%s''. Try the --help for a list of options."), export_filename);
+					fprintf(stderr, "\n");
+					exit(1);
+				}
+				export_filename = argv[++i];
+				/* Fail safe routine to keep sure that the original file can
+				 * never be overwritten
+				 */
+				if ( strcmp(export_filename, filename) == 0 ) {
+					fprintf(stderr, _("Input file name is equal to output file name. Please choose a different output file name."));
+					fprintf(stderr, "\n");
+					exit(1);
+				}
+				/* FALLTHROUGH */
+			case ARG_NONE:
+				writeHeader = option->writeHeader;
+				writeLine = option->writeLine;
+				break;
+			case ARG_OPTION:
+				i++;
+				/* FALLTHROUGH */
+			case ARG_BOOLEAN:
+				/* There can be many -- call them all: */
+				if (option->writeHeader &&
+					option->writeHeader(NULL, p_dbf,
+					filename, argv[i]))
+					exit (1);
+				break;
+			default:
+				assert(!"Unknown type of option argument");
 		}
 	}
 
@@ -468,6 +518,16 @@ main(int argc, char *argv[])
 		output = stdout;
 	else
 		output = export_open(export_filename);
+
+	/* If the tablename was not set explicitly, use the export file name */
+	if(!tablename && export_filename && 0 != strcmp(export_filename, "-"))
+		tablename = strdup(export_filename);
+
+	if(!tablename && writeHeader == writeSQLHeader) {
+		fprintf(stderr, _("SQL mode requires a tablename to be set, if the output goes to stdout."));
+		fprintf(stderr, "\n");
+		exit(1);
+	}
 
 	/*
 	 * Call the main header-method, which we skipped during the option parsing
@@ -482,19 +542,15 @@ main(int argc, char *argv[])
 		}
 		record[record_length] = '\0'; /* So the converters know, where to stop */
 
-		if (verbosity > 0)
-			fprintf(stderr, "Export from %s to %s\n",filename,
+		if (verbosity > 0) {
+			fprintf(stderr, _("Export from %s to %s"),filename,
 			    output == stdout ? "stdout" : export_filename);
+			fprintf(stderr, "\n");
+		}
 
 		while (0 <= (i = dbf_ReadRecord(p_dbf, record, record_length)))
 		{
 			dataset_deleted = 0;
-
-			if (i == -1) {
-				perror("reading the next block");
-				exit(1);
-			}
-
 			if (record[0] == '*' ) {
 				dataset_deleted = 1;
 			}
@@ -510,7 +566,8 @@ main(int argc, char *argv[])
 				writeLine(output, p_dbf, record+1, header_length,
 			    	filename, export_filename);
 			} else if ( verbosity >=1 && record[0] != 0x1A) {
-				fprintf(stderr, "The row %i is set to 'deleted'.\n", i);
+				fprintf(stderr, _("The row %i is set to 'deleted'."), i);
+				fprintf(stderr, "\n");
 			}
 		}
 		free(record);
@@ -520,3 +577,13 @@ main(int argc, char *argv[])
 
 	return 0;
 }
+/* }}} */
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: sw=4 ts=4 fdm=marker
+ * vim<600: sw=4 ts=4
+ */

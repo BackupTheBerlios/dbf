@@ -4,6 +4,14 @@ Please send suggestions, code pieces and comments directly to the authors
 email address [anubisnet group]
 File sorted in order of date of release
 
+0.9.0	DEVELOPMENT
+- (Release-Date)
+- fixed --trim b|r which ate up 1 char strings
+- checks if filesize equals calculated file size (could be disabled in dbf.h
+  by setting DBF_FILE_CHECK to 0)
+- Paths to a backlink database are taken into account for header_length
+  calculation but not for processing
+
 0.8.1		STABLE
 2003-20-10	(Release-Date)
 - fixed CSV converting, data sets are now converted properly

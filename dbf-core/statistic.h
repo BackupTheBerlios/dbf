@@ -56,7 +56,7 @@ void dbf_file_info (struct DB_HEADER *db)
 	printf("Length of header......: \t %d (%04xd)\n", rotate2b(db->header_length),
 	rotate2b(db->header_length));
 	printf("Record length.........: \t %d (%04xd)\n", rotate2b(db->record_length), rotate2b(db->record_length));
-	printf("Columns in file.......: \t %d \n", rotate2b(db->header_length)/32)-1;
+	printf("Columns in file.......: \t %d \n", (rotate2b(db->header_length)/32)-1);
 	printf("Rows in file..........: \t %d\n\n", rotate4b(db->records));
 }
 

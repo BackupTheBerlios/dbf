@@ -6,6 +6,8 @@ File sorted in order of date of release
 
 0.9.0		DEVELOPMENT
 - (Release-Date)
+- data in csv output is only surrounded by enclosure char if data
+  contains the separator char
 - fixed output of numbers in sql output (sometimes a 'NULL' preceeded
   the number)
 - fixed wasting of memory in sql.c

@@ -5,7 +5,9 @@
  * dbf Reader and Converter for dBASE files    											
  * Version 0.5beta02																	
  *																					
- * History:	
+ * History:
+ * - Version 0.5
+ *   all SQL functions are commented due to compiler problems	
  * - Version 0.5beta02 - 07.02.2003
  *   changes in help()
  *	 Big Endian Check Override Flag
@@ -15,7 +17,7 @@
  * - Version 0.3.1.1 - 30.11.2002
  *   code cleanups for MSVC, prevents some warnings
  * - Version 0.3.1 - 23.11.2002
- *   fixed memory leak (trying to convert a 284Mb file used 900Mb 
+ *   fixed memory leak (trying to convert a 284Mb file used 900Mb
  *   of memory and got killed) send in by:
  *   Andy Jeffries, Email: opensource@andyjeffries.co.uk
  * - Version 0.3.0 - [not yet released]
@@ -25,23 +27,25 @@
  *   code cleanups for MSVC
  * - Version 0.2.6 - 20.09.2002
  *   dbf.c splitted to dbf.c, statistic.h, iodbf.h, an_string.h
- *	 minor bugfixes in output 																		
- * - Version 0.2.5 - 14.09.2002														
- *	 Code Page support for umlauts and other special characters added (codepages.h)	
- * - Version 0.2 - 28.07.2002														
- *	 Converter for csv implemented													
- *   function trim_spaces implemented												
- * - Version 0.1 - June 2002														
- *	 Output for dBase3 databases, based on a version by Joachim Astel, 1989			
+ *	 minor bugfixes in output
+ * - Version 0.2.5 - 14.09.2002
+ *	 Code Page support for umlauts and other special characters added (codepages.h)
+ * - Version 0.2 - 28.07.2002
+ *	 Converter for csv implemented
+ *   function trim_spaces implemented
+ * - Version 0.1 - June 2002
+ *	 Output for dBase3 databases, based on a version by Joachim Astel, 1989
  ************************************************************************************/
 
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+/*#define NEWLINE_LENGTH 1*/
 #include <limits.h>
 #ifdef __unix__	
 	#include <sys/stat.h>
+    #define NEWLINE_LENGTH 2
 	#include <unistd.h>
 #elif __MSDOS__
 	#include <io.h>
@@ -49,19 +53,35 @@
 #elif _WIN32
 	#include <io.h>
 	#include <sys\stat.h>
-#endif	
+    #define NEWLINE_LENGTH 2
+#endif
+#define VERSION1 0
+#define VERSION2 5
+#define VERSION3 0
+#define VERSION4 1
+#define SQL_OUTPUT 1
+#define CSV_OUTPUT 2
+#define INFO_OUTPUT 3
+#define IS_STRING 1
+#define IS_NUMERIC 2
+#define DBF_VERSION 0x07
+#define DBF_MEMO3 0x80
+#define DBF_MEMO4 0x08
+
+
 /* special anubisnet and dbf includes */
 #include "codepages.h"
 #include "iodbf.h"
 #include "an_string.h"
 #include "statistic.h"
 #include "endian.h"
+/*#include "sql.h"*/
 
 #define MAX_FIELDS 50				/* maximum number of fields within a database */
 
 struct DB_HEADER db_buf, *db = &db_buf;
 struct DB_FIELD *header[MAX_FIELDS], *dbf;
-char export[3];						/* stores the format to convert into: csv, txt */
+char export[4];						/* stores the format to convert into: csv, txt */
 char *export_filename;				/* stores the filename to export to */
 int isbigendian;					/* verifies if the used system is of type Big Endian or not */
 
@@ -118,7 +138,7 @@ int writeCSVHeader (int fh, struct DB_FIELD *header[], int header_length)
 		}
 		free(buffer);												
 	}
-	if((write(fh, "\n", 2)) == -1) {
+	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
 		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
 	}
 	
@@ -153,11 +173,11 @@ int writeCSVLine (int fh, char *value, int header_length) {
 			exit(1);
 		}
 	}
-	if((write(fh, "\n", 2)) == -1) {
+	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
 		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
 	}
 	free(buffer);
-	
+	free(NewString);
 	return 0;				
 }
 
@@ -166,26 +186,28 @@ void show_help(char *pname) {
     printf("Usage: %s [option][argument] dbf-file, -h for help\n", pname);
 	printf("\n Options:");
     printf("\n  -h or --help \t\t shows this screen");
-	printf("\n  --csv [csv-file] \t convert dBASE File to csv (readable with\
- spread sheets)");	
+	printf("\n  --csv [csv-file] \t convert dBASE File to csv (readable with spread sheets)");
+    /*printf("\n  --sql [sql-file] \t converts dBASE File to sql (tested with Postgres)");*/ 	
 	printf("\n  --view-info \t\t displays statistics about current dbf file");
 	printf("\n  --ppc \t\t force dbf not to check the system architecture");
 	printf("\n\nPlease note that the current version automatically detects\n\
 the codepage used in the dbf file.\n\
-At the moment only english, american and western european is supported.\n");				 
+At the moment only english, american and western european codepages are supported.\n");				 
 }
 
-/* - - - THE MAIN PROGRAMME - - -*/
+/* - - - THE MAIN PROGRAM - - -*/
 /* the part of Joachim Astel was completely re-written and adopted for version 0.2 */
 int main (int argc, char *argv[])
 {	
-	int dbfhandle, csvhandle;
+	int dbfhandle, handle;
 	int header_length, i;
 	char *filename;
 	int ppc_override; // Big Endian Check Override
+	int type;
 	ppc_override = 0;
 	
-	printf("dBase Reader and Converter V. 0.5beta02, (c) 2003 by Bjoern Berg\n");
+	
+	printf("dBase Reader and Converter V. 0.5, (c) 2003 by Bjoern Berg\n");
 	/*printf("Build: %s, %s\n", __DATE__, __TIME__);*/	
 		
 	if (argc < 2) {
@@ -196,8 +218,15 @@ int main (int argc, char *argv[])
 	/* check for override flags, developer versions */
 	for(i=1; i < argc; i++) {
 		if(strcmp(argv[i], "--ppc")==0) ppc_override = 1;
-		else ppc_override = 0;
-	}
+	} 
+		
+	/* Check if someone needs help */
+	for(i=1; i < argc; i++) {
+		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0) {
+			show_help(*argv);
+			exit(1);
+		}
+	}	
 	
 	/* check architecture: little-endian / big-endian */
 	if(ppc_override == 1) {
@@ -224,19 +253,29 @@ int main (int argc, char *argv[])
 	/* -c csv export */
 	for(i=1; i < argc; i++) {	     
 		if(strcmp(argv[i],"--csv")==0) {
-		   if((i+1) < argc)
-		     export_filename = argv[i+1];
+			  if((i+2) < argc) {
+		    	export_filename = argv[i+1];
+                type = CSV_OUTPUT;
+               } else {
+		     	printf("Usage: %s --csv export_filename dbf-file, -h for help\n", *argv);
+		     	exit(1);
+		   	   }
 		}
 	}	
-	
-	/* Check if someone needs help */
-	for(i=1; i < argc; i++) {
-		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0) {
-			show_help(*argv);
-			exit(1);
-		}
-	}
-	
+
+    /* sql export */
+    /*for(i=1; i < argc; i++) {            
+    	if(strcmp(argv[i],"--sql")==0) {
+        	if((i+2) < argc) {
+            	export_filename = argv[i+1];
+                type = SQL_OUTPUT;
+            } else {
+                printf("Usage: %s --sql export_filename dbf-file, -h for help\n", *argv);
+                exit(1);
+            } 
+        }
+    } */      
+
 	/* Statistic Output */
 	/* new since version 0.3.0 BETA 1 */
 	for(i=1; i < argc; i++) {	     
@@ -264,51 +303,60 @@ int main (int argc, char *argv[])
 		dbf_read_header(dbfhandle, filename);		
 		header_length = rotate2b(db->header_length) / 32;
 		getHeaderValues(dbfhandle,filename,header_length);
+		char *foo, *p;
+		int i, k;						
+		lseek(dbfhandle, rotate2b(db->header_length) + 1, 0);
 		
+		if((foo = (char *)malloc(rotate2b(db->record_length))) == NULL)	{
+			printf("Fatal error: Cannot malloc.\n"); exit(1);
+		}
+		
+		/* Export, write the Header to export_filename (SQL or CSV)*/			
+		if(export_filename) {
+		  printf("Export from %s to %s\n",filename,export_filename);
+		  handle = export_open(export_filename);
+		  switch(type) {
+		    case SQL_OUTPUT:
+			    /*writeSQLHeader(handle,header,header_length, filename, export_filename);*/
+		    	break;
+            default:
+			    writeCSVHeader(handle, header,header_length);                           
+		        break;
+          }                                               
+		}
+		
+		/* foo, p inherits full data set */
+		while ((read(dbfhandle, (p = foo), rotate2b(db->record_length))))
 		{
-			char *foo, *p;
-			int i, k;						
-						
-			lseek(dbfhandle, rotate2b(db->header_length) + 1, 0);
-
-			if((foo = (char *)malloc(rotate2b(db->record_length))) == NULL)
-			{
-				printf("Fatal error: Cannot malloc.\n"); exit(1);
-			}
-			/* CSV Export, write the Header to export_filename */			
-			if(export_filename) {
-			    printf("Export from dbf to CSV\n");
-				csv_open(export_filename);
-				writeCSVHeader(csvhandle,header,header_length);				
-			}	
-			
-			/* foo, p inherits full data set */
-			while ((read(dbfhandle, (p = foo), rotate2b(db->record_length))))
-			{
-				/* automatic convert options */
-				cp850convert(p);					
-				ASCIInumbers(p);	
-				/* If export_filename is not set output data to screen,
-				   otherwise to export_filename */
-				if(!export_filename) {
-					for (i=1; i < header_length; i++)
-				   	{
-						dbf = header[i];										
-						k = dbf->field_length;												
-	                    printf("%11.11s: ", dbf->field_name);
-					    while (k--)
-						   putchar(*p++);					
-					    putchar('\n');															
-					}				
-					putchar('\n');
-				} else {
-					writeCSVLine(csvhandle, p, header_length);
-				}						   								
-			}					
-		}	
-	} /* End of --> if dbf_open */
+			/* automatic convert options */
+		  	cp850convert(p);					
+		  	ASCIInumbers(p);
+			/* If export_filename is not set output data to screen, otherwise to export_filename */
+		  	if(!export_filename) {
+		    	for (i=1; i < header_length; i++)
+				{
+			  		dbf = header[i];										
+			  		k = dbf->field_length;
+	                printf("%11.11s: ", dbf->field_name);
+			  		while (k--)
+			     		putchar(*p++);
+			  		putchar('\n');
+				}
+				putchar('\n');
+		  	} else {
+		      	switch(type) {
+              	case SQL_OUTPUT:
+					/*writeSQLLine(handle, p, header_length, filename, export_filename);*/
+					break;
+		      	default:
+					writeCSVLine(handle, p, header_length);
+					break;
+				}	
+		  	} /* End of --> inner if */		  
+		} /* End of --> while */
+	} /* End of --> if dbfhandle */
 	dbf_close(dbfhandle,filename);
-	csv_close(csvhandle,export_filename);
-	
+	export_close(handle,export_filename);
+
 	return 0;
 }

@@ -4,7 +4,7 @@ Please send suggestions, code pieces and comments directly to the authors
 email address [anubisnet group]
 File sorted in order of date of release
 
-0.9		STABLE
+0.9.0		STABLE
 - Do not put the separator char after the last field in csv output (Uwe)
 - Add field type, size and decimals to field name in first line of csv
   output (Uwe)

@@ -6,7 +6,7 @@
  * Version 0.9
  *
  ******************************************************************************
- * $Id: dbf.c,v 1.27 2004/08/30 11:33:47 steinm Exp $
+ * $Id: dbf.c,v 1.28 2004/08/30 12:03:00 steinm Exp $
  *****************************************************************************/
 
  /** TODO **/
@@ -256,6 +256,7 @@ printDBF(FILE *output, P_DBF *p_dbf,
 struct options {
 	const char	*id;
 	headerMethod	 writeHeader;
+	footerMethod	 writeFooter;
 	lineMethod	 writeLine;
 	enum argument {
 		ARG_NONE,	/* Method without output file */
@@ -266,72 +267,72 @@ struct options {
 	const char	*help, *def_behavior;
 } options[] = {
 	{
-		"--sql",	writeSQLHeader,	writeSQLLine,	ARG_OUTPUT,
+		"--sql", writeSQLHeader,	writeSQLFooter, writeSQLLine,	ARG_OUTPUT,
 		"{filename} -- convert file into sql statements",
 		NULL
 	},
 	{
-		"--trim",	setSQLTrim,	writeSQLLine,	ARG_OPTION,
+		"--trim", setSQLTrim,	NULL, NULL,	ARG_OPTION,
 		"{r|l|b} -- trim char fields in sql output (right, left, both)",
 		"not to trim"
 	},
 	{
-		"--csv",	writeCSVHeader,	writeCSVLine,	ARG_OUTPUT,
+		"--csv", writeCSVHeader,	NULL, writeCSVLine,	ARG_OUTPUT,
 		"{filename} -- convert file into \"comma separated values\"",
 		NULL
 	},
 	{
-		"--separator",	setCSVSep,	NULL,		ARG_OPTION,
+		"--separator", setCSVSep, NULL, NULL, ARG_OPTION,
 		"{c} -- set field separator for csv format",
 		"to use ``,''"
 	},	
 	{
-		"--tablename",	setTablename,	NULL,		ARG_OPTION,
+		"--tablename", setTablename, NULL, NULL, ARG_OPTION,
 		"{name} -- set name of the table for sql output",
 		"the name of the export file"
 	},	
 	{
-		"--view-info",	writeINFOHdr,	NULL,		ARG_NONE,
+		"--view-info", writeINFOHdr, NULL, NULL, ARG_NONE,
 		"write various information and table structure to stdout",
 		NULL
 	},
 	{
-		"--noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
+		"--noconv",	setNoConv, NULL, NULL, ARG_BOOLEAN,
 		"do not run each record through charset converters",
 		"to use the experimental converters"
 	},
 	{
-		"--nodrop",	setNoDrop,	NULL,		ARG_BOOLEAN,
+		"--nodrop",	setNoDrop, NULL, NULL, ARG_BOOLEAN,
 		"disable DROP TABLE statement in sql output",
 		NULL
 	},
 	{
-		"--nocreate",	setNoCreate,	NULL,		ARG_BOOLEAN,
+		"--nocreate", setNoCreate, NULL, NULL, ARG_BOOLEAN,
 		"disable CREATE TABLE statement in sql output",
 		NULL
 	},
 	{
-		"--usecopy",	setSQLUsecopy,	NULL,		ARG_BOOLEAN,
+		"--usecopy", setSQLUsecopy, NULL, NULL, ARG_BOOLEAN,
 		"use COPY instead of INSERT for populating table",
 		NULL
 	},
 	{
-		"--empty-str-is-null",	setSQLEmptyStrIsNULL,	NULL,		ARG_BOOLEAN,
+		"--empty-str-is-null", setSQLEmptyStrIsNULL, NULL, NULL, ARG_BOOLEAN,
 		"ouput NULL for empty strings in sql output",
 		NULL
 	},
 	{
-		"--keepdel",	setKeepDel,	NULL,		ARG_NONE,
+		"--keepdel", setKeepDel, NULL, NULL, ARG_NONE,
 		"output also deleted records",
 		"to skip deleted records"
 	},
 	{
-		"--debug",	setVerbosity,	NULL,		ARG_OPTION,
+		"--debug", setVerbosity, NULL, NULL, ARG_OPTION,
 		"{0-9} -- set the debug level. 0 is the quietest",
 		"0"
 	},
 	{
-		"--version", NULL,	NULL,		ARG_NONE,
+		"--version", NULL, NULL, NULL, ARG_NONE,
 		"shows the current release number",
 		NULL
 	},
@@ -381,6 +382,7 @@ main(int argc, char *argv[])
 	int		 header_length, record_length, i;
 	const char	*filename, *export_filename = NULL;
 	headerMethod	 writeHeader = NULL;
+	footerMethod	 writeFooter = NULL;
 	lineMethod	 writeLine = printDBF;
 	unsigned char	*record;
 	unsigned int dataset_deleted;
@@ -461,6 +463,7 @@ main(int argc, char *argv[])
 				/* FALLTHROUGH */
 			case ARG_NONE:
 				writeHeader = option->writeHeader;
+				writeFooter = option->writeFooter;
 				writeLine = option->writeLine;
 				break;
 			case ARG_OPTION:
@@ -544,6 +547,12 @@ main(int argc, char *argv[])
 		}
 		free(record);
 	}
+	/*
+	 * Call the main footer-method, which we skipped during the option parsing
+	 */
+	if (writeFooter && writeFooter(output, p_dbf, filename, export_filename))
+		exit(1);
+
 	dbf_Close(p_dbf);
 	export_close(output, export_filename);
 

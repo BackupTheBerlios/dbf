@@ -28,7 +28,7 @@ uninstall:
 clean:	
 	@(echo "");
 	@(echo -e "$(RED)Cleaning directories...$(NORMAL)");
-	@(for i in $(DIRS); do cd $(DIRS); rm *.o; rm $(BIN); done);
+	@(for i in $(DIRS); do cd $(DIRS); rm -f *.o; rm $(BIN); done);
 	
 src-dist:	
 	# Add sources

@@ -4,6 +4,14 @@ Please send suggestions, code pieces and comments directly to the authors email
 address [anubisnet group]
 File sorted in order of date of release
 
+0.8		STABLE
+			(Release-Date)
+- Changed the options parsing system and the options id, so that options
+  with a single hyphen can also be used and displayed in the help.
+- Inserted a fail safe routine which checks that the original file will
+  never be overwritten if the options filename is missing  			
+
+
 0.7		STABLE
 2003-09-14	(Release-Date)
 Changelog send in by Mikhail Teterin:

@@ -1,18 +1,18 @@
 /***********************************************************************************
-* sql.h
-* conversion of dbf files to sql
-* only tested with postgres
-* Author: Dr Georg Roesler, February 2003
-* Email: groesle@gwdg.de
-*
-* Implemented for: dbf Reader and Converter for dBase 3
-* Version 0.5
-*
-* History:
-*	2003-02-24	jones	some minor changes
-* - Version 0.1 - February 2003
-*	 first implementation in dbf.c
-************************************************************************************/
+ * sql.c
+ ***********************************************************************************
+ * conversion of dbf files to sql
+ * 
+ * Version 0.2, 2003-09-08
+ * Author: Dr Georg Roesler, groesle@gwdg.de
+ *
+ * History:
+ * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
+ *								Support for MySQL and PostGres
+ * 2003-02-24	jones			some minor changes
+ * - Version 0.1 - February 2003
+ *	 first implementation in dbf.c
+ ************************************************************************************/
 
 #include "sql.h"
 
@@ -62,7 +62,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 
 	fprintf(fp, "-- %s -- \n--\n"
 	    "-- SQL code with the contents of dbf file %s\n\n"
-	    "\ndrop table %.*s\n"
+	    "\ndrop table %.*s;\n"
 	    "\nCREATE TABLE %.*s(\n",
 	    export_filename, filename,
 	    tablelen, export_filename,
@@ -71,10 +71,26 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 		fprintf(fp, "%s\t", dbf->field_name);
 		switch(dbf->field_type) {
 			case 'C':
-			case 'M':
-				fprintf(fp, "character varying(%d)",
+				/*
+				 * SQL 2 requests "character varying" at this point,
+				 * but oracle, informix, dab2, MySQL and PGSQL
+				 * support also "varchar". To be compatible to most
+				 * SQL databases we should use varchar for the moment.
+				 * - berg, 2003-09-08
+				 */
+				fprintf(fp, "varchar(%d)",
 				    dbf->field_type == 'M' ? 10 :
 					dbf->field_length);
+			break;
+			case 'M':
+				/*
+				 * M stands for memo fields which are currently not
+				 * supported by dbf.
+				 * - berg, 2003-09-08
+				 */
+				fprintf(stderr, "Invalid mode. "
+			    "dbf cannot convert this dBASE file. Memo fields are not supported.");
+				return 1;
 			break;
 			case 'N':
 				l1 = dbf->field_length;
@@ -136,34 +152,44 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			if (trimright) {
 				while (--end != begin && *end == ' ')
 					/* Nothing */;
-				if (end == begin)
-					goto endstring;
+					if (end == begin) { 
+						goto endstring;	
+					}
 				end++;
-			}
+			}			
 		}
-		if (trimleft || !isstring)
+
+		if (trimleft || !isstring) {
 			while (begin != end && *begin == ' ')
 				begin++;
+		}
 
 		if (begin == end) {
-			if (isstring)
+			if (isstring) {				
 				goto endstring;
+			}
+				
 			fputs("NULL", fp);
 			goto endfield;
+
 		}
+
 		do	/* Output the non-empty string:*/
 			putc(*begin++, fp);
 		while (begin != end);
 
 		if (isstring)
-	endstring:
-			putc('\'', fp);
+		endstring:			
+			putc('\'', fp);		
 
-	endfield:
-		if (header_length != 1)
-			/* Not the last field */
-			putc(',', fp);
-	}
+		endfield:			
+			if (header_length != 1) {
+			/* Not the last field */												
+				putc(',', fp);
+			} 
+		
+	}	
+	/* Terminate INSERT INTO with ) and ; */ 
 	fputs(");\n", fp);
 
 	return 0;

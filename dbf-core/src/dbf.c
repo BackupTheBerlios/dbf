@@ -103,6 +103,10 @@ printDBF(FILE *output, const struct DB_FIELD * header,
 	return 0;
 }
 
+/*
+ * Added the hyphes to the id so that ids wit a single hyphe are also possible.
+ * -- Bjoern Berg, 2003-10-06
+ */
 struct options {
 	const char	*id;
 	headerMethod	 writeHeader;
@@ -114,41 +118,41 @@ struct options {
 		ARG_OUTPUT	/* Method with output file */
 	} argument;
 	const char	*help, *def_behavior;
-} options[] = {
+} options[] = {	
 	{
-		"sql",	writeSQLHeader,	writeSQLLine,	ARG_OUTPUT,
+		"--sql",	writeSQLHeader,	writeSQLLine,	ARG_OUTPUT,
 		"{filename} -- writes the table-creating SQL code into the file",
 		"to write to stdout in human-readable form"
 	},
 	{
-		"trim",	setSQLTrim,	writeSQLLine,	ARG_OPTION,
+		"--trim",	setSQLTrim,	writeSQLLine,	ARG_OPTION,
 		"{r|l|b} -- whether to trim the string fields in the SQL output\n"
 		"\t\tfrom right, left, or both",
 		"not to trim"
 	},
 	{
-		"csv",	writeCSVHeader,	writeCSVLine,	ARG_OUTPUT,
+		"--csv",	writeCSVHeader,	writeCSVLine,	ARG_OUTPUT,
 		"{filename} -- outputs the \"Comma Separated Values\" represenation\n"
 		"\t\tof the dBASE table into the specified file",
 		"to write to stdout in human-readable form"
 	},
 	{
-		"separator",	setCSVSep,	NULL,		ARG_OPTION,
+		"--separator",	setCSVSep,	NULL,		ARG_OPTION,
 		"{c} -- sets the separator character for the CSV format",
 		"to use ``,''"
 	},
 	{
-		"view-info",	writeINFOHdr,	NULL,		ARG_NONE,
+		"--view-info",	writeINFOHdr,	NULL,		ARG_NONE,
 		"write the dBASE file's headers and stats to stdout",
 		"not to output the stats"
 	},
 	{
-		"noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
+		"--noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
 		"do not run each each record through charset converters",
 		"to use the experimental converters"
 	},
 	{
-		"debug",	setVerbosity,	NULL,		ARG_OPTION,
+		"--debug",	setVerbosity,	NULL,		ARG_OPTION,
 		"{0-9} -- set the debug level. 0 is the quietest",
 		"1"
 	},
@@ -158,11 +162,7 @@ struct options {
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.7, (c) 2002 - 2003 by Bjoern Berg\n"
-	    /*"$Id: dbf.c,v 1.2 2003/09/14 15:43:40 rollin_hand Exp $\n" */, stderr);
-/*#	if defined(__DATE__) && defined(__TIME__)
-	fputs("Built on "__DATE__" at "__TIME__"\n", stderr);
-#	endif */
+	fputs("dBase Reader and Converter V. 0.7, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
 
 /* Help */
@@ -177,7 +177,7 @@ usage(const char *pname)
 	    "Available options:\n", pname);
 
 	for (option = options; option->id; option++)
-		fprintf(stderr, "%c\t--%s\t%s\n\t\t(default is %s)\n",
+		fprintf(stderr, "%c\t%s\t%s\n\t\t(default is %s)\n",
 		    option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
 		    option->id, option->help, option->def_behavior);
 	fputs("*-marked options are currently mutually exclusive.\n"
@@ -192,7 +192,7 @@ main(int argc, char *argv[])
 	int		 dbfhandle;
 	FILE		*output = NULL;
 	int		 header_length, record_length, i;
-	const char	*filename, *export_filename = NULL;
+	const char	*filename = NULL, *export_filename = NULL;
 	headerMethod	 writeHeader = NULL;
 	lineMethod	 writeLine = printDBF;
 	unsigned char	*record;
@@ -207,6 +207,7 @@ main(int argc, char *argv[])
 		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0 || strcmp(argv[i],"/?")==0)
 			usage(*argv);	/* Does not return */
 
+	/* TODO */
 	/* check architecture: little-endian/big-endian XXX Should be done at compile time! */
 	isbigendian = IsBigEndian();
 
@@ -230,7 +231,7 @@ main(int argc, char *argv[])
 		struct options *option = options;
 		if (argv[i][0] != '-' && argv[i][1] != '-')
 			goto badarg;
-		while (option->id && strcmp(argv[i]+2, option->id))
+		while (option->id && strcmp(argv[i], option->id))
 			option++;
 		if (option->id == NULL) {
 		badarg:
@@ -239,16 +240,26 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 		switch (option->argument) {
-		case ARG_OUTPUT:
-			/* There can only be one: */
+		case ARG_OUTPUT:			
 			if (export_filename) {
 				fprintf(stderr,
 				    "Output file name was already specified as ``%s''.\n"
 				    "Try the --help option\n",
 				    export_filename);
 				exit(1);
-			}
+			}			
 			export_filename = argv[++i];
+			/* Fail safe routine to keep sure that the original file can
+			 * never be overwritten
+			 * this strcmp creates during compilation an error of type:
+			 * warning: comparison between pointer and integer - but why?
+			 * -- Bjoern Berg, 2003-10-06
+			 */
+			if ( strcmp(export_filename, filename) == NULL ) {
+				fprintf(stderr, "\nERROR: Input file same as output file\n"
+					"Please change the name of the output file or refer to the help.\n");
+				exit(1);	
+			}
 			/* FALLTHROUGH */
 		case ARG_NONE:
 			writeHeader = option->writeHeader;

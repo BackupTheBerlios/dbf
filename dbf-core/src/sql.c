@@ -3,10 +3,13 @@
  ***********************************************************************************
  * conversion of dbf files to sql
  * 
- * Version 0.2, 2003-09-08
- * Author: Dr Georg Roesler, groesle@gwdg.de
+ * Version 0.2.1, 2003-10-30
+ * Author: 	Dr Georg Roesler, groesle@gwdg.de
+ * 			Mikhail Teterin,
+ *			Björn Berg, clergyman@gmx.de
  *
  * History:
+ * 2003-10-30	rintala, berg	valid data fix for date values
  * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
  *								Support for MySQL and PostGres
  * 2003-02-24	jones			some minor changes
@@ -131,8 +134,9 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 
 	for (dbf = header + 1; --header_length; dbf++) {
 		const unsigned char *end, *begin;
-		int isstring = dbf->field_type == 'M' || dbf->field_type == 'C';
-
+		int isstring = (dbf->field_type == 'M' || dbf->field_type == 'C');
+		int isdate = (dbf->field_type == 'D');
+		
 		/*
 		 * A string is only trimmed if trimright and/or trimleft is set
 		 * Other datatypes are always "trimmed" to determine, if they
@@ -143,6 +147,14 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		value += dbf->field_length; /* The next field */
 		end = value;
 
+		if (isdate) {
+			/*
+			 * SQL syntax requires quotes around date strings
+			 * t2r@wasalab.com, Oct 2003
+			 */
+			putc('\'', fp);			 
+		}	
+		
 		if (isstring) {
 			putc('\'', fp);
 			/*
@@ -163,6 +175,16 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			while (begin != end && *begin == ' ')
 				begin++;
 		}
+		
+		/*
+		 * If date field value was missing, "valid" data should have been
+		 * written. [...] In my application I can live with date like 1970-01-01.
+		 * - Tommi Rintala, by email, Oct 2003
+		 */		
+		if (isdate) {
+			fputs("19700101", fp);
+			goto endstring;
+		}	
 
 		if (begin == end) {
 			if (isstring) {				
@@ -178,7 +200,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			putc(*begin++, fp);
 		while (begin != end);
 
-		if (isstring)
+		if (isstring || isdate)
 		endstring:			
 			putc('\'', fp);		
 

@@ -181,7 +181,7 @@ struct options {
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.7.5, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.8, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
 
 /* Help */

@@ -9,14 +9,10 @@
  *			Björn Berg, clergyman@gmx.de
  *
  * History:
- * 2003-11-05	berg			added support for field type float, double, int and 
- *								logical	 
- * 2003-10-30	rintala, berg	valid data fix for date values
- * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
- *								Support for MySQL and PostGres
- * 2003-02-24	jones			some minor changes
- * - Version 0.1 - February 2003
- *	 first implementation in dbf.c
+ * $Log: sql.c,v $
+ * Revision 1.9  2004/01/03 15:42:40  rollinhand
+ * fixed problems with NULL values
+ *
  ************************************************************************************/
 
 #include "sql.h"
@@ -188,7 +184,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			;
 		end++;
 
-		if (isdate) {
+		if (isdate && begin != end) {
 			/*
 			 * SQL syntax requires quotes around date strings
 			 * t2r@wasalab.com, Oct 2003
@@ -196,7 +192,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			putc('\'', fp);			 
 		}	
 		
-		if (isstring) {
+		if (isstring && begin != end) {
 			putc('\'', fp);
 			/*
 			 * Non-string data-fields are right justified

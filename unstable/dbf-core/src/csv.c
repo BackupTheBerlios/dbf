@@ -15,7 +15,7 @@
 
 #include "csv.h"
 
-static char CSVSeparator = ';';
+static char CSVSeparator = ',';
 
 /* allows to change the separator used for CSV output */
 int

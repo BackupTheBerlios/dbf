@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.14  2004/02/01 12:04:54  rollinhand
+ * Some cosmetics
+ *
  * Revision 1.13  2003/12/16 19:16:57  rollinhand
  * Corrected handling of deleted datasets, some tunings, see Changelog for more details
  *
@@ -22,17 +25,6 @@
  * Revision 1.10  2003/11/20 15:57:42  rollin_hand
  * while no conversion option is given, dbf can return a null pointer in line 345 ->fixed
  * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
- *
- * Revision 1.9  2003/11/19 06:55:58  steinm
- * - passing a filename '-' to --csv or --sql is treated as stdout
- *
- * Revision 1.8  2003/11/13 11:19:34  rollin_hand
- * - erased the warning in the fail safe routine
- *
- * Revision 1.7  2003/11/11 15:53:13  rollin_hand
- * - added fold marks to some functions
- * - added --version to options
- * - default options can be set to NULL and are not displayed in help
  *
  ******************************************************************************/
  
@@ -59,7 +51,7 @@ unsigned int dbc = 0;
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);	   
 }
 
 /* dbf_backlink_exists() {{{

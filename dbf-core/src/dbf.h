@@ -5,33 +5,8 @@
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBASE files
  * 
- * History:
- * $Log: dbf.h,v $
- * Revision 1.13  2004/08/30 12:04:08  steinm
- * - added typedef for footerMethod
- *
- * Revision 1.12  2004/08/30 10:24:25  steinm
- * - removed include file an_string.h
- *
- * Revision 1.11  2004/08/28 16:30:50  steinm
- * - remove some global variables, add tablename as new one
- *
- * Revision 1.10  2004/08/27 06:43:35  steinm
- * - started translation of strings
- * - removed a lot of old code
- *
- * Revision 1.9  2004/08/27 05:44:11  steinm
- * - used libdbf for reading the dbf file
- *
- * Revision 1.8  2004/04/25 16:00:52  rollinhand
- * added dbf_open / dbf_close
- *
- * Revision 1.7  2004/04/25 15:20:02  rollinhand
- * several changes - not yet verified
- *
- * Revision 1.6  2004/03/16 20:57:36  rollinhand
- * Code Cleanup
- *
+ *****************************************************************************
+ * $Id: dbf.h,v 1.14 2004/09/07 15:52:37 steinm Exp $
  *****************************************************************************/
 
 #ifndef __DBF_H__
@@ -47,14 +22,26 @@
 #define _(a) a
 #endif
 
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <limits.h>
+#ifdef __unix__
+#	include <sys/stat.h>
+#	include <unistd.h>
+#elif __MSDOS__
+#	include <io.h>
+#	include <sys\stat.h>
+#elif _WIN32
+#	include <io.h>
+#	include <sys\stat.h>
+#endif
+
 /*
  * special anubisnet and dbf includes
  */
 #include "codepages.h"
-#include "statistic.h"
-#include "endian.h"
-#include "csv.h"
-#include "sql.h"
 
 #define DBF_FILE_CHECK 1
 

@@ -17,22 +17,6 @@
 #ifndef _SQL_H_
 #define _SQL_H_
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <limits.h>
-#ifdef __unix__
-#	include <sys/stat.h>
-#	include <unistd.h>
-#elif __MSDOS__
-#	include <io.h>
-#	include <sys\stat.h>
-#elif _WIN32
-#	include <io.h>
-#	include <sys\stat.h>
-#endif
-
 #include "dbf.h"
 
 int setNoDrop (FILE *fp, P_DBF *p_dbf,

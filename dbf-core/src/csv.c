@@ -5,12 +5,13 @@
  * Implementation
  *
  * Author: Bjoern Berg, clergyman@gmx.de
- * Version 0.2, September 2003
+ * Version 0.3, September 2003
  *
  ***********************************************************************************
  * This includes enable dbf to write CSV files
  ***********************************************************************************
  * History:
+ * 2003-10-12	berg			Its now possible to create tab separated files
  * 2003-09-08	teterin, berg	complete rewrite of functions
  *								code cleanup
  * 2003-03-17	berg			first implementation
@@ -19,19 +20,25 @@
 
 #include "csv.h"
 
+/* CSVFileType describes the type the converted file is of: (C)SV or (T)SV */
+static char CSVFileType = 'C';
 static char CSVSeparator = ',';
 
 /* allows to change the separator used for CSV output */
 int
 setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
     int header_length, const char *in /* __unused */, const char *separator)
-{
-	if (separator[1]) {
+{		
+	if ( separator[1] && separator[0] != 't' ) {
 		fprintf(stderr, "Separator ``%s'' is too long -- must be a single character\n",
 		    separator);
 		return 1;
-	}
-	CSVSeparator = separator[0];
+	} else if ( separator[0] == 't' ) {			
+		CSVSeparator = '\t';
+		CSVFileType = 'T';						
+	} else {
+		CSVSeparator = separator[0];	
+	}	
 	return 0;
 }
 
@@ -71,7 +78,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		 * Text fields must be enclosed by quotation marks
 		 * - berg, 2003-09-08
 		 */
-		if (isstring)
+		if ( isstring && CSVFileType == 'C' )
 			putc('\"', fp);
 		
 		while (*begin == ' ' && begin != end)
@@ -84,7 +91,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 			} while (begin++ != end);
 		}
 
-		if (isstring)
+		if ( isstring && CSVFileType == 'C')
 			putc('\"', fp);
 
 		putc(CSVSeparator, fp);

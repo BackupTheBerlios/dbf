@@ -8,10 +8,7 @@
  * This includes enable dbf to write CSV files
  ***********************************************************************************
  * History:
- * 2003-09-08	teterin, berg	complete rewrite of functions
- *								code cleanup
- * 2003-03-17	berg			first implementation
- *								copied CSV-specific functions to separate file
+ * see csv.c for more details
  ***********************************************************************************/
 
 #ifndef _ANUBISNET_CSV_

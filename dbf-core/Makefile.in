@@ -1,5 +1,12 @@
+################################################################################
 # Makefile for dbf
-# Makefile Version: 0.8
+#
+# History:
+#  $Log: Makefile.in,v $
+#  Revision 1.2  2004/04/25 15:10:28  rollinhand
+#  changed header
+#
+################################################################################
 
 include Makefile.rules
 

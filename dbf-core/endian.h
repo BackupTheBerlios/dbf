@@ -26,9 +26,11 @@
 #define _true 0x01
 #define _false 0x00
 
+typedef int _bool;
+
 // Routine to test if System uses Big Endian
 // or Little Endian
-int IsBigEndian() {
+_bool IsBigEndian() {
  int i = 1;
  int c = *((char*)&i);
  return c == 0;

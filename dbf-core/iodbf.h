@@ -26,9 +26,9 @@
 #else
 	#include <sys/stat.h>
 	#include <unistd.h>
+	#include <stdlib.h>
 #endif	
 
-/*int dbfhandle,csvhandle;*/
 
 /* * * * DBF_OPEN 
  * open the the current dbf file

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- $Id: cvs.html,v 1.1 2005/03/05 22:57:23 rollinhand Exp $ -->
+<head>
+  <title>dbf - Your dBASE Converter</title>
+  <meta name="GENERATOR" content="Eclipse">
+  <meta name="AUTHOR" content="Bjoern Berg">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+  <link rel="stylesheet" type="text/css" href="default.css">
+</head>
+<body>
+
+<div id="container">
+  <div id="main">
+    <h1>CVS Access</h1>
+    <h3>Anonymous CVS Access</h3>
+	<p>This project's BerliOS Developer CVS repository can be checked out through anonymous 
+	   (pserver) CVS with the following instruction set. The module you wish to check out must
+	   be specified as the modulename (modules are top level directories in the repository).
+	   To see the list of the modules available in the repository use the web-based CVS 
+	   repository access. When prompted for a password for anonymous, simply press the Enter 
+	   key.
+	</p>   
+
+	<p style="font-family:courier">cvs -d:pserver:anonymous@cvs.dbf.berlios.de:/cvsroot/dbf login</p>
+ 
+	<p style="font-family:courier">cvs -z3 -d:pserver:anonymous@cvs.dbf.berlios.de:/cvsroot/dbf co modulename</p>
+
+	<p>Updates from within the module's directory do not need the -d parameter.</p>
+
+	<br>
+	<h3>Developer CVS Access via SSH</h3>
+
+	<p>Only project developers can access the CVS tree via this method. SSH2 must be 
+	   installed on your client machine. Substitute modulename and developername with 
+	   the proper values. Enter your site password when prompted.
+	</p>
+	<p style="font-family:courier">export CVS_RSH=ssh</p>
+	<p style="font-family:courier">cvs -z3 -ddevelopername@cvs.dbf.berlios.de:/cvsroot/dbf co modulename</p>
+	<br>
+	
+	<h3>Compiling versions from CVS</h3>
+	<p>To compile dbf or libdbf execute the following commands in the right order:<p>
+	<p style="font-family:courier">
+	  ./autogen.sh<br>
+	  ./configure<br>
+	  make<br>
+	  su -c 'make install'<br>
+	</p>
+	<p>If you have problems compiling a version from CVS, please refer to the Section
+	   <a href="doc.html">Documentation</a>.</p>  
+	
+  </div>
+  <div id="block">
+  <h4>End Users</h4>
+  <ul>
+    <li><a href="index.html">dbf Home</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="intro.html">Features</a></li>
+    <li><a href="man.html">Users Manual</a></li>
+    <li><a href="downloads.php">Downloads</a></li>
+    <li><a href="shots.html">Screenshots</a></li>
+  </ul>  
+  <hr noshade width="95%" size="1" align="center">
+  <h4>Developers</h4>
+  <ul>
+    <li><a href="cvs.html">CVS</a></li>
+    <li><a href="doc.html">Documentation</a></li>
+    <li><a href="bugs.html">Bug Report</a></li>
+    <li><a href="bugs.html">Feature Request</a></li>
+    <li><a href="forum.html">Forum</a></li>
+  </ul>  
+    
+  </div>  
+  <div id="footer">
+   (c) Copyright 2005, Bj&ouml;rn Berg
+  </div>
+</div>
+
+</body>
+</html>

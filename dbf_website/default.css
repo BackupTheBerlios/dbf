@@ -1,0 +1,80 @@
+body {
+  background-color:#6688AA;
+  font:1.0em sans-serif;
+  color:#000;
+  background:url(pics/verlauf.jpg) repeat-x #6688AA;  
+}    
+
+/*** Style Definitionen für den Container ***********************/
+div#container {  
+  position:relative;
+  background-color:#EEE;
+  width:640px;  
+  margin:25px auto 25px auto;  
+}
+
+/*** Style Definitionen für den Bereich des Haupttextes (main) **/
+div#main {    
+  background-color:#FFF;
+  width:480px;
+  float:left; 
+  padding:5px;
+}
+
+/*** Style Definitionen für den Navigationsbereich (block) ******/
+div#block {    
+  background-color:#EEE;  
+  width:146px;
+  float:left;      
+}
+
+#block ul {
+  list-style-type:none;
+  text-align:left;
+  padding-left:5px;
+}
+
+#block li {   
+  text-align:left;
+}
+
+#block a {
+  text-decoration:none;
+  color:#0000FF;
+}
+
+#block a:hover {
+  text-decoration:underline;
+}
+
+div#footer {
+  background-color:#BBB; 
+  padding:5px;
+  text-align:center;
+  clear:both;  
+}
+
+/*** Style Definitionen für den Announcement Bereich auf der Startseite */
+p#announcement {
+  background-color:#EE9292;
+  border:solid 1px #FF0000;
+  padding:5px;
+}
+
+/*** Übergreifende Formate *******************************************/
+h3 {
+  font:1.0em sans-serif;
+  font-weight:bold;
+}
+
+h4 {
+  font:1.0em sans-serif;
+  font-weight:bold;
+  color:#AAA;
+  width:100%;
+  margin-left:5px;
+/*  background-color:#DDD;
+  padding:4px;*/
+}
+
+

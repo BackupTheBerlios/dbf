@@ -1,11 +1,13 @@
 CHANGELOG dbf - dBASE Reader and Converter
-Author: Bjoern Berg, clergyman@gmx.de
+Author: Bjoern Berg <clergyman@gmx.de>, Uwe Steinmann <uwe@steinmann.cx>
 Please send suggestions, code pieces and comments directly to the authors
-email address [anubisnet group]
+email address
 File sorted in order of date of release
 
 0.9.0		DEVELOPMENT
 - (Release-Date)
+- exporting dbase is possible
+- new options --quiet, --start-record and --num-records
 - new option --usecopy allows to use COPY instead of INSERT statement
   in sql output.
 - use libdbf for dBASE file access
@@ -13,8 +15,8 @@ File sorted in order of date of release
 - various speed improvements
 - nicer formating of sql output, partial rewrite of code
 - major update of man page
-- Endian-Swapping is now centralized for a better Performance
-- Table Dropping and Creation can be now deactivated
+- endian swapping is now centralized for a better performance
+- table dropping and Creation can be now deactivated
 - fixed bug in sql export option when a column value is NULL.
 - fixed column statistic if backlink is detected
 - fixed handling of deleted datasets

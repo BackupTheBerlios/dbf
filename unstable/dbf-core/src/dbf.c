@@ -159,7 +159,7 @@ static void
 banner()
 {
 	fputs("dBase Reader and Converter V. 0.7, (c) 2002 - 2003 by Bjoern Berg\n"
-	    /*"$Id: dbf.c,v 1.3 2003/09/04 19:59:17 rollin_hand Exp $\n" */, stderr);
+	    /*"$Id: dbf.c,v 1.4 2003/09/08 17:02:10 rollin_hand Exp $\n" */, stderr);
 /*#	if defined(__DATE__) && defined(__TIME__)
 	fputs("Built on "__DATE__" at "__TIME__"\n", stderr);
 #	endif */
@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 
 	/* Check if someone needs help */
 	for(i=1; i < argc; i++)
-		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0)
+		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0 || strcmp(argv[i],"/?")==0)
 			usage(*argv);	/* Does not return */
 
 	/* check architecture: little-endian/big-endian XXX Should be done at compile time! */

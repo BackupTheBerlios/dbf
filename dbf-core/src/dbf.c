@@ -6,7 +6,7 @@
  * Version 0.9
  *
  ******************************************************************************
- * $Id: dbf.c,v 1.28 2004/08/30 12:03:00 steinm Exp $
+ * $Id: dbf.c,v 1.29 2004/08/30 12:19:25 steinm Exp $
  *****************************************************************************/
 
  /** TODO **/
@@ -492,9 +492,16 @@ main(int argc, char *argv[])
 	/* If the tablename was not set explicitly, use the export file name */
 	if(!tablename && export_filename && 0 != strcmp(export_filename, "-")) {
 		char *ptr;
-		tablename = basename(export_filename);
-		if(NULL != (ptr = strrchr(tablename, '.')))
-			*ptr = '\0';
+		tablename = basename(strdup(export_filename));
+		if(NULL != (ptr = strrchr(tablename, '.'))) {
+			if(ptr != tablename)
+				*ptr = '\0';
+			else {
+				fprintf(stderr, _("Creating the table name from the export file name results in a NULL string."));
+				fprintf(stderr, "\n");
+				exit(1);
+			}
+		}
 	}
 		
 
@@ -502,6 +509,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, _("SQL mode requires a tablename to be set, if the output goes to stdout."));
 		fprintf(stderr, "\n");
 		exit(1);
+	} else if (verbosity > 0) {
+		fprintf(stderr, _("Tablename is '%s'"), tablename);
+		fprintf(stderr, "\n");
 	}
 
 	/*
@@ -518,7 +528,7 @@ main(int argc, char *argv[])
 		record[record_length] = '\0'; /* So the converters know, where to stop */
 
 		if (verbosity > 0) {
-			fprintf(stderr, _("Export from %s to %s"),filename,
+			fprintf(stderr, _("Export from '%s' to '%s'"),filename,
 			    output == stdout ? "stdout" : export_filename);
 			fprintf(stderr, "\n");
 		}

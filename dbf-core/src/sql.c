@@ -3,27 +3,43 @@
  ***********************************************************************************
  * conversion of dbf files to sql
  * 
- * Version 0.2.1, 2003-10-30
  * Author: 	Dr Georg Roesler, groesle@gwdg.de
  * 			Mikhail Teterin,
  *			Björn Berg, clergyman@gmx.de
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.10  2004/03/16 21:01:46  rollinhand
+ * New flag to prevent Drop/Create statements by user interaction
+ *
  * Revision 1.9  2004/01/03 15:42:40  rollinhand
  * fixed problems with NULL values
  *
  ************************************************************************************/
 
 #include "sql.h"
+#include "csv.h"
 #ifndef __DBF_CORE_
   #include "dbf.h"
-#endif  
+#endif
 
 static size_t	tablelen;
 /* Whether to trim SQL strings from either side: */
 static int	trimright = 0;
 static int	trimleft = 0;
+
+/* setNoDrop() {{{
+ * defines if charset converter should be used
+ */
+int
+setNoDrop(FILE *output, const struct DB_FIELD * header,
+    int header_length,
+    const char *filename, const char *level)
+{
+	sql_drop_table = 0;
+	return 0;
+}
+/* }}} */
 
 int setSQLTrim(FILE *fp, const struct DB_FIELD * header,
     int header_length,
@@ -65,19 +81,21 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 	tablelen = strlen(export_filename) - 4; /* Also used by the line-method */
 
 	fprintf(fp, "-- %s -- \n--\n"
-	    "-- SQL code with the contents of dbf file %s\n\n"
-	    "\ndrop table %.*s;\n"
-	    "\nCREATE TABLE %.*s(\n",
-	    export_filename, filename,
-	    tablelen, export_filename,
-	    tablelen, export_filename);
+	    "-- SQL code with the contents of dbf file %s\n\n",export_filename, filename);
+	if ( sql_drop_table ) {
+		fprintf(fp, "\ndrop table %.*s;\n"
+	    	"\nCREATE TABLE %.*s(\n",
+	    	tablelen, export_filename,
+	    	tablelen, export_filename);
+	}   
+		    
 	for (dbf = header + 1; --header_length; dbf++) {
 		fprintf(fp, "%s\t", dbf->field_name);
 		switch(dbf->field_type) {
 			case 'C':
 				/*
 				 * SQL 2 requests "character varying" at this point,
-				 * but oracle, informix, dab2, MySQL and PGSQL
+				 * but oracle, informix, db2, MySQL and PGSQL
 				 * support also "varchar". To be compatible to most
 				 * SQL databases we should use varchar for the moment.
 				 * - berg, 2003-09-08
@@ -93,12 +111,12 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				 * - berg, 2003-09-08
 				 */
 				fprintf(stderr, "Invalid mode. "
-			    "dbf cannot convert this dBASE file. Memo fields are not supported.");
+			    "dbf cannot convert this dBASE file. Memo fields are not yet supported.");
 				return 1;
 			break;
 			case 'I':
 				fputs("int", fp);
-			break;	
+			break;
 			case 'N':
 				l1 = dbf->field_length;
 				l2 = dbf->field_decimals;
@@ -107,7 +125,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				else
 					fprintf(fp, "numeric(%d, %d)",
 					    l1, l2);
-			break;			
+			break;
 			case 'F':
 				l1 = dbf->field_length;
 				l2 = dbf->field_decimals;
@@ -116,7 +134,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 			case 'B':
 				/*
 				 * In VisualFoxPro 'B' stands for double so it is an int value
-				 */				 
+				 */
 				if ( dbversion == VisualFoxPro ) {
 					l1 = dbf->field_length;
 				    l2 = dbf->field_decimals;
@@ -125,19 +143,19 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				    fprintf(stderr, "Invalid mode. "
 			    	"dbf cannot convert this dBASE file. Memo fields are not supported.");
 					return 1;
-				} 
-				
+				}
+
 			break;
 			case 'D':
 				fputs("date", fp);
-			break;			
+			break;
 			case 'L':
-				/* 
+				/*
 				 * Type logical is not supported in SQL, you have to use number
 				 * resp. numeric to keep to the standard
 				 */
 				 fprintf(fp, "boolean");
-			break;	 	
+			break;
 			default:
 				fprintf(fp, "/* unsupported type ``%c'' */",
 				    dbf->field_type);
@@ -168,7 +186,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		int isstring = (dbf->field_type == 'M' || dbf->field_type == 'C');
 		int isdate = (dbf->field_type == 'D');
 		int isbool = (dbf->field_type == 'L');
-		
+
 		/*
 		 * A string is only trimmed if trimright and/or trimleft is set
 		 * Other datatypes are always "trimmed" to determine, if they
@@ -189,9 +207,9 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			 * SQL syntax requires quotes around date strings
 			 * t2r@wasalab.com, Oct 2003
 			 */
-			putc('\'', fp);			 
-		}	
-		
+			putc('\'', fp);
+		}
+
 		if (isstring && begin != end) {
 			putc('\'', fp);
 			/*
@@ -201,56 +219,56 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			if (trimright) {
 				while (--end != begin && *end == ' ')
 					/* Nothing */;
-					if (end == begin && *end == ' ') { 
-						goto endstring;	
+					if (end == begin && *end == ' ') {
+						goto endstring;
 					}
 				end++;
-			}			
+			}
 		}
 
 		if (trimleft || !isstring) {
 			while (begin != end && *begin == ' ')
 				begin++;
 		}
-		
+
 		/*
 		 * If date field value was missing, "valid" data should have been
 		 * written. [...] In my application I can live with date like 1970-01-01.
 		 * - Tommi Rintala, by email, Oct 2003
-		 */		
+		 */
 		/*if (isdate) {
 			fputs("19700101", fp);
 			goto endstring;
-		}*/	
+		}*/
 
 		if (begin == end) {
-			if (isstring) {				
+			if (isstring) {
 				goto endstring;
 			}
-				
+
 			fputs("NULL", fp);
 			goto endfield;
 		}
-		
+
 		if (isbool) {
-			char sign = *begin++;				
+			char sign = *begin++;
 			if ( sign == 't' || sign == 'y' || sign == 'T' || sign == 'Y') {
 				fprintf(fp, "true");
-			} else { 
+			} else {
 				fprintf(fp, "false");
-			}	
-			
-		} else if (dbf->field_type == 'B' || dbf->field_type == 'F') {	
-		
+			}
+
+		} else if (dbf->field_type == 'B' || dbf->field_type == 'F') {
+
 			char *fmt = malloc(20);
 			sprintf(fmt, "%%%d.%df", dbf->field_length, dbf->field_decimals);
 			fprintf(fp, fmt, *(double *)begin);
 			begin += dbf->field_length;
-			
-		} else {		
-			
-			do	{ /* Output the non-empty string:*/				
-				
+
+		} else {
+
+			do	{ /* Output the non-empty string:*/
+
 				char sign = *begin++;	/* cast operations */
 				switch (sign) {
 					case '\'':
@@ -260,26 +278,26 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 					case '\"':
 						putc('\\', fp);
 						putc('\"', fp);
-						break;	
-					default:					
-						putc(sign, fp);						
-				}				
+						break;
+					default:
+						putc(sign, fp);
+				}
 			} while (begin != end);
-			
-		}	
+
+		}
 
 		if (isstring || isdate)
-		endstring:			
-			putc('\'', fp);		
+		endstring:
+			putc('\'', fp);
 
-		endfield:			
+		endfield:
 			if (header_length != 1) {
-			/* Not the last field */												
+			/* Not the last field */
 				putc(',', fp);
-			} 
-		
-	}	
-	/* Terminate INSERT INTO with ) and ; */ 
+			}
+
+	}
+	/* Terminate INSERT INTO with ) and ; */
 	fputs(");\n", fp);
 
 	return 0;

@@ -36,6 +36,8 @@
 #include "an_string.h"
 #include "tables.h"
 
+int setNoDrop (FILE *fp, const struct DB_FIELD * header,
+    int header_length, const char *input, const char *separator);
 int setSQLTrim(FILE *fp, const struct DB_FIELD * header, int header_length,
     const char *filename, const char *mode /* ``l''. or ``r'', or ``b'' */);
 int writeSQLHeader(FILE *fp, const struct DB_FIELD * header, int header_length,

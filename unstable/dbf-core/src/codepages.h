@@ -13,17 +13,16 @@
  *  - Version 0.2 - 2003-01-30
  *	  included patch by Christian Vogel:
  *	  changes all occurences of "char" to "unsigned char"
- *    This avoids many warnings about "case statement out of range"	
+ *    This avoids many warnings about "case statement out of range"
  *  - Version 0.1 - 14.09.2002
  *	  first implementation, using iso-definitions
  ********************************************************************/
- 
+
 #ifndef _DBF_CODEPAGES_
 #define _DBF_CODEPAGES_
 
 #include <string.h>
 
-void cp850convert (unsigned char *src);
-void ASCIInumbers (unsigned char *src);
+void cp850andASCIIconvert(unsigned char *src);
 
 #endif

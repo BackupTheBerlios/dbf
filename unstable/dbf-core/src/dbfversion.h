@@ -10,7 +10,7 @@
  *	2003-01-26	berg	first implementation
  ********************************************************************/
 
-#ifndef _DBF_VERSION_ 
+#ifndef _DBF_VERSION_
 #define _DBF_VERSION_
 
 int dbfexamine(unsigned char byte, int *version, int *memo);

@@ -10,7 +10,7 @@
  ****************************************************************************
  * Functions to write CSV files
  ****************************************************************************
- * $Id: csv.c,v 1.17 2004/08/30 11:34:59 steinm Exp $
+ * $Id: csv.c,v 1.18 2004/09/07 16:04:29 steinm Exp $
  ***************************************************************************/
 
 #include <libdbf/libdbf.h>
@@ -78,7 +78,7 @@ writeCSVHeader (FILE *fp, P_DBF *p_dbf,
 		}
 		if(CSVTableStructure && CSVSeparator == ',')
 			fputs("\"", fp);
-		if(i > 0)
+		if(i < columns-1)
 			putc(CSVSeparator, fp);
 	}
 	fputs("\n", fp);
@@ -92,7 +92,7 @@ writeCSVHeader (FILE *fp, P_DBF *p_dbf,
  */
 int
 writeCSVLine(FILE *fp, P_DBF *p_dbf,
-    const unsigned char *value, int header_length,
+    const unsigned char *value, int record_length,
     const char *in /* unused */, const char *out /* unused */)
 {
 	int i, columns;

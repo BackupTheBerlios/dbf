@@ -6,7 +6,7 @@ File sorted in order of date of release
 
 
 0.5		STABLE
--
+2003-02-17	(Release-Date)
 - Support for Big Endian systems (PPC): stable
 - improvements in endian.h
 * dbf.c:

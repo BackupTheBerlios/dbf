@@ -4,7 +4,12 @@
  * Author: Bjoern Berg, June 2002
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBASE files
- * Version 0.6
+ * 
+ * History:
+ * $Log: dbf.h,v $
+ * Revision 1.6  2004/03/16 20:57:36  rollinhand
+ * Code Cleanup
+ *
  ***********************************************************************************/
 
 #ifndef __DBF_CORE__
@@ -16,8 +21,8 @@
 #include <string.h>
 #include <limits.h>
 
-/* 
- * special anubisnet and dbf includes 
+/*
+ * special anubisnet and dbf includes
  */
 #include "codepages.h"
 #include "iodbf.h"
@@ -37,17 +42,18 @@
 #define dBase4WM 0x8B			/* Code for dBase IV with memo fields */
 #define dBase4SQL 0x8E			/* Code for dBase IV with SQL table */
 #define dBase5 0x05				/* Code for dBase 5.0 */
-#define FoxPro2WM 0xF5			/* Code for FoxPro 2.0 (or earlier) with memo fields */					
+#define FoxPro2WM 0xF5			/* Code for FoxPro 2.0 (or earlier) with memo fields */
 #define VisualFoxPro 0x30		/* Code for Visual FoxPro without memo fields */
 
-/* 
- * V A R I A B L E S 
+/*
+ * V A R I A B L E S
  */
 
 extern unsigned int verbosity;
 extern unsigned int dbversion;
 extern unsigned int keep_deleted;
 extern unsigned int dbc;
+extern unsigned int sql_drop_table;
 
 typedef int	(*headerMethod)(FILE *output, const struct DB_FIELD * header,
     int header_length,

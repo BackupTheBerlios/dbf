@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.14  2004/03/16 20:57:36  rollinhand
+ * Code Cleanup
+ *
  * Revision 1.13  2003/12/04 12:10:48  steinm
  * - skip 0 at end of field value
  *
@@ -22,22 +25,6 @@
  * Revision 1.11  2003/11/12 07:51:02  steinm
  * - put variable declaration at start of function because some older
  *   gcc can handle it otherwise
- *
- * Revision 1.10  2003/11/11 15:12:03  rollin_hand
- * solved the problem with header in writeCSVLine
- *
- * Revision 1.9  2003/11/11 14:44:52  rollin_hand
- * added cast operation for douple qoutes
- *
- * Revision 1.8  2003/11/11 11:29:21  steinm
- * - added fold marks
- * - clean up header of file
- * - removed csv keyword id: because the info ist part of log:
- *
- * Revision 1.7  2003/11/11 11:23:50  steinm
- * - cut line to less than 80 charssrc/csv.c
- * - added cvs keywords log: and id:
- *
  ***************************************************************************/
 
 #include "csv.h"
@@ -54,17 +41,17 @@ static int CSVTableStructure = 1;
 int
 setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
     int header_length, const char *in /* __unused */, const char *separator)
-{		
+{
 	if ( separator[1] && separator[0] != 't' ) {
-		fprintf(stderr, "Separator ``%s'' is too long -- must be a single character\n",
+		fprintf(stderr, "Separator / Escape char ``%s'' is too long -- must be a single character\n",
 		    separator);
 		return 1;
-	} else if ( separator[0] == 't' ) {			
+	} else if ( separator[0] == 't' ) {
 		CSVSeparator = '\t';
-		CSVFileType = 'T';						
+		CSVFileType = 'T';
 	} else {
-		CSVSeparator = separator[0];	
-	}	
+		CSVSeparator = separator[0];
+	}
 	return 0;
 }
 /* }}} */
@@ -121,7 +108,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		header++;
 		isstring = header->field_type == 'M' || header->field_type == 'C';
 		isfloat = header->field_type == 'F' || ( header->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
-		
+
 		begin = value;
 		value += header->field_length;
 		end = value - 1;
@@ -137,15 +124,15 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		 */
 		if ( isstring && CSVFileType == 'C' )
 			putc(CSVEnclosure, fp);
-		
+
 		while (*begin == ' ' && begin != end)
 			begin++;
-			
+
 		if (*begin != ' ') {
-			
+
 			while (*end == ' ')
 				end--;
-			
+
 			/* This routine must be verified in several tests */
 			if (isfloat) {
 				char *fmt = malloc(20);
@@ -157,10 +144,10 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 					/* mask enclosure char */
 					if(*begin == CSVEnclosure) {
 							putc(CSVEnclosure, fp);
-					}				
+					}
 					putc(*begin, fp);
 				} while (begin++ != end);
-			}	
+			}
 		}
 
 		if ( isstring && CSVFileType == 'C')

@@ -78,6 +78,7 @@
 #include "an_string.h"
 #include "statistic.h"
 #include "endian.h"
+#include "csv.h" /* added 2003-03-17 */
 
 #define MAX_FIELDS 50				/* maximum number of fields within a database */
 
@@ -123,7 +124,7 @@ int getHeaderValues (int fh, char *file, int header_length)
 
 /* writeCSVHeader */
 /* creates the CSV Header with the information provided by DB_FIELD */
-int writeCSVHeader (int fh, struct DB_FIELD *header[], int header_length)
+/*int writeCSVHeader (int fh, struct DB_FIELD *header[], int header_length)
 {
 	int i;
 	char *q;
@@ -146,11 +147,11 @@ int writeCSVHeader (int fh, struct DB_FIELD *header[], int header_length)
 	}
 	
 	return 0;	
-}
+}*/
 
 /* writeCSVLine */
 /* creates a line in the CSV document for each data set */
-int writeCSVLine (int fh, char *value, int header_length) {
+/*int writeCSVLine (int fh, char *value, int header_length) {
 	char *p, *q;
 	int i, x;
 	char buffer[65536];
@@ -180,7 +181,7 @@ int writeCSVLine (int fh, char *value, int header_length) {
 		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
 	}
 	return 0;				
-}
+}*/
 
 /* Help */
 void show_help(char *pname) {
@@ -316,7 +317,7 @@ int main (int argc, char *argv[])
 			    writeSQLHeader(handle,header,header_length, filename, export_filename);
 		    	break;
             default:
-			    writeCSVHeader(handle, header,header_length);                           
+			    writeCSVHeader(handle,header,dbf,header_length); // added dbf, must be tested                           
 		        break;
           }                                               
 		}
@@ -345,7 +346,7 @@ int main (int argc, char *argv[])
 					/*writeSQLLine(handle, p, header_length, filename, export_filename);*/
 					break;
 		      	default:
-					writeCSVLine(handle, p, header_length);
+					writeCSVLine(handle,p,header,dbf,header_length); //dbf and header added, must be tested
 					break;
 				}	
 		  	} /* End of --> inner if */		  

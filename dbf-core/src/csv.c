@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.10  2003/11/11 15:12:03  rollin_hand
+ * solved the problem with header in writeCSVLine
+ *
  * Revision 1.9  2003/11/11 14:44:52  rollin_hand
  * added cast operation for douple qoutes
  *
@@ -100,12 +103,13 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 
 	while (--header_length)
 	{
+		header++;
 		const unsigned char *begin, *end;
-		int isstring = (header+1)->field_type == 'M' || (header+1)->field_type == 'C';
-		int isfloat = (header+1)->field_type == 'F' || ( (header+1)->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
+		int isstring = header->field_type == 'M' || header->field_type == 'C';
+		int isfloat = header->field_type == 'F' || ( header->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
 		
 		begin = value;
-		value += (++header)->field_length;
+		value += header->field_length;
 		end = value - 1;
 
 		/*
@@ -127,9 +131,9 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 			/* This routine must be verified in several tests */
 			if (isfloat) {
 				char *fmt = malloc(20);
-				sprintf(fmt, "%%%d.%df", (++header)->field_length, (++header)->field_decimals);
+				sprintf(fmt, "%%%d.%df", header->field_length, header->field_decimals);
 				fprintf(fp, fmt, *(double *)begin);
-				begin += (++header)->field_length;
+				begin += header->field_length;
 			} else {
 				do {
 					char sign = *begin;	/* cast operations */

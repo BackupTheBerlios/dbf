@@ -8,6 +8,7 @@
  * Author: Björn Berg, clergyman@gmx.de
  *
  * History:
+ * 2003-05-09   jones	changes for AIX in IsBigEndian()
  * 2003-04-18	berg	endian.h splitted to endian.h and endian.c
  *						implemented fix by Uwe Steinmann
  * 2003-02-16	jones	the #ifndef inclusion guard only protected the #defines 
@@ -24,10 +25,19 @@
 /*******************************************************************
  * Routine to test if System uses Big Endian or Little Endian
  *******************************************************************/
-_bool IsBigEndian() {
+/*_bool IsBigEndian() {
  int i = 1;
  int c = *((char*)&i);
  return c == 0;
+}*/
+_bool IsBigEndian() {
+#if defined(__aix__) 
+ return _true;
+#else 
+ int i = 1;
+ int c = *((char*)&i);
+ return c == 0;
+#endif
 }
 
 /******************************************************************

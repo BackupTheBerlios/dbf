@@ -28,3 +28,10 @@ dBASE file. See CHANGELOG for more information.
 Christian Vogel, chris@obelix.hedonism.cx:
 Patch which changes all occurences of "char" to "unsigned char" in codepages.h of 
 dbf-0.4. This avoids many warnings about "case statement out of range"
+
+Ross Jones, ross@companyofarchers.org:
+A lot of fixes and a helpful hand while porting dbf to PPC, especially MacOS X.
+
+Dr. Georg Roesler:
+- SQL Export
+- Bugfixes and code optimization

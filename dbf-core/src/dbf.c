@@ -6,7 +6,7 @@
  * Version 0.9
  *
  ******************************************************************************
- * $Id: dbf.c,v 1.30 2004/09/07 15:53:12 steinm Exp $
+ * $Id: dbf.c,v 1.31 2005/03/16 08:36:16 steinm Exp $
  *****************************************************************************/
 
  /** TODO **/
@@ -308,100 +308,104 @@ struct options {
 	footerMethod	 writeFooter;
 	lineMethod	 writeLine;
 	enum argument {
-		ARG_NONE,	/* Method without output file */
-		ARG_OPTION,	/* Option with argument	*/
-		ARG_BOOLEAN,	/* Option without argument */
-		ARG_OUTPUT	/* Method with output file */
+		ARG_NONE,         /* Method without output file */
+		ARG_OPTION,       /* Option with argument	*/
+		ARG_BOOLEAN,      /* Option without argument */
+		ARG_OUTPUT        /* Method with output file */
 	} argument;
+	enum class {
+		ARG_CLASS_SET,    /* Option to set something */
+		ARG_CLASS_OUTPUT  /* Option to set output mode */
+	} class;
 	const char	*help, *def_behavior;
 } options[] = {
 	{
-		"--sql", writeSQLHeader, writeSQLFooter, writeSQLLine, ARG_OUTPUT,
+		"--sql", writeSQLHeader, writeSQLFooter, writeSQLLine, ARG_OUTPUT, ARG_CLASS_OUTPUT,
 		"{filename} -- convert file into sql statements",
 		NULL
 	},
 	{
-		"--trim", setSQLTrim, NULL, NULL, ARG_OPTION,
+		"--trim", setSQLTrim, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{r|l|b} -- trim char fields in sql output (right, left, both)",
 		"not to trim"
 	},
 	{
-		"--csv", writeCSVHeader, NULL, writeCSVLine, ARG_OUTPUT,
+		"--csv", writeCSVHeader, NULL, writeCSVLine, ARG_OUTPUT, ARG_CLASS_OUTPUT,
 		"{filename} -- convert file into \"comma separated values\"",
 		NULL
 	},
 	{
-		"--dbf", writeDBFHeader, writeDBFFooter, writeDBFLine, ARG_OUTPUT,
+		"--dbf", writeDBFHeader, writeDBFFooter, writeDBFLine, ARG_OUTPUT, ARG_CLASS_OUTPUT,
 		"{filename} -- convert file into dBASE file",
 		NULL
 	},
 	{
-		"--separator", setCSVSep, NULL, NULL, ARG_OPTION,
+		"--separator", setCSVSep, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{c} -- set field separator for csv format",
 		"to use ``,''"
 	},	
 	{
-		"--tablename", setTablename, NULL, NULL, ARG_OPTION,
+		"--tablename", setTablename, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{name} -- set name of the table for sql output",
 		"the name of the export file"
 	},	
 	{
-		"--start-record", setStartRecord, NULL, NULL, ARG_OPTION,
+		"--start-record", setStartRecord, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{number} -- sets first record to read",
 		"1, the first record"
 	},	
 	{
-		"--num-records", setNumRecords, NULL, NULL, ARG_OPTION,
+		"--num-records", setNumRecords, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{number} -- sets number of records to read",
 		"all"
 	},	
 	{
-		"--view-info", writeINFOHdr, NULL, NULL, ARG_NONE,
+		"--view-info", writeINFOHdr, NULL, NULL, ARG_NONE, ARG_CLASS_OUTPUT,
 		"write various information and table structure to stdout",
 		NULL
 	},
 	{
-		"--noconv",	setNoConv, NULL, NULL, ARG_BOOLEAN,
+		"--noconv",	setNoConv, NULL, NULL, ARG_BOOLEAN, ARG_CLASS_SET,
 		"do not run each record through charset converters",
 		"to use the experimental converters"
 	},
 	{
-		"--nodrop",	setNoDrop, NULL, NULL, ARG_BOOLEAN,
+		"--nodrop",	setNoDrop, NULL, NULL, ARG_BOOLEAN, ARG_CLASS_SET,
 		"disable DROP TABLE statement in sql output",
 		NULL
 	},
 	{
-		"--nocreate", setNoCreate, NULL, NULL, ARG_BOOLEAN,
+		"--nocreate", setNoCreate, NULL, NULL, ARG_BOOLEAN, ARG_CLASS_SET,
 		"disable CREATE TABLE statement in sql output",
 		NULL
 	},
 	{
-		"--usecopy", setSQLUsecopy, NULL, NULL, ARG_BOOLEAN,
+		"--usecopy", setSQLUsecopy, NULL, NULL, ARG_BOOLEAN, ARG_CLASS_SET,
 		"use COPY instead of INSERT for populating table",
 		NULL
 	},
 	{
-		"--empty-str-is-null", setSQLEmptyStrIsNULL, NULL, NULL, ARG_BOOLEAN,
+		"--empty-str-is-null", setSQLEmptyStrIsNULL, NULL, NULL, ARG_BOOLEAN, ARG_CLASS_SET,
 		"ouput NULL for empty strings in sql output",
 		NULL
 	},
 	{
-		"--keepdel", setKeepDel, NULL, NULL, ARG_NONE,
+		"--keepdel", setKeepDel, NULL, NULL, ARG_NONE, ARG_CLASS_SET,
 		"output also deleted records",
 		"to skip deleted records"
 	},
 	{
-		"--quiet", setQuiet, NULL, NULL, ARG_NONE,
+		"--quiet", setQuiet, NULL, NULL, ARG_NONE, ARG_CLASS_SET,
 		"do not out anything but the record data",
 		"to at least output warnings"
 	},
 	{
-		"--debug", setVerbosity, NULL, NULL, ARG_OPTION,
+		"--debug", setVerbosity, NULL, NULL, ARG_OPTION, ARG_CLASS_SET,
 		"{0-9} -- set the debug level. 0 is the quietest",
 		"0"
 	},
 	{
-		"--version", NULL, NULL, NULL, ARG_NONE,
+		"--version", NULL, NULL, NULL, ARG_NONE, ARG_CLASS_OUTPUT,
 		"shows the current release number",
 		NULL
 	},
@@ -453,6 +457,7 @@ main(int argc, char *argv[])
 	headerMethod	 writeHeader = NULL;
 	footerMethod	 writeFooter = NULL;
 	lineMethod	 writeLine = printDBF;
+	int outputmode = -1; /* Index of option in struct options */
 	unsigned char	*record;
 	unsigned int dataset_deleted;
 
@@ -498,55 +503,89 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	/* Check for calling name of the programm */
+	if(!strcmp(argv[0], "dbfinfo")) {
+		struct options *option = options;
+		int optionindex;
+		optionindex = 0;
+		while (option->id && strcmp("--view-info", option->id)) {
+			option++;
+			optionindex++;
+		}
+		if (option->id != NULL) {
+			writeHeader = option->writeHeader;
+			writeFooter = option->writeFooter;
+			writeLine = option->writeLine;
+			outputmode = optionindex;
+		} else {
+			fprintf(stderr, _("Could not find predefined option when calling '%s'"), argv[0]);
+			fprintf(stderr, "\n");
+		}
+	}
+
 	/* Scan through arguments looking for options
 	 */
 	for(i=1; i < argc; i++) {
 		struct options *option = options;
+		int optionindex;
 		if (argv[i][0] != '-' && argv[i][1] != '-')
 			goto badarg;
-		while (option->id && strcmp(argv[i], option->id))
+		optionindex = 0;
+		while (option->id && strcmp(argv[i], option->id)) {
 			option++;
+			optionindex++;
+		}
 		if (option->id == NULL) {
 		badarg:
 			fprintf(stderr, _("Unrecognized option ``%s''. Try ``--help'' for a list of options."), argv[i]);
 			fprintf(stderr, "\n");
 			exit(1);
 		}
-		switch (option->argument) {
-			case ARG_OUTPUT:
-				if (export_filename) {
-					fprintf(stderr,
-						_("Output file name was already specified as ``%s''. Try the --help for a list of options."), export_filename);
-					fprintf(stderr, "\n");
-					exit(1);
-				}
-				export_filename = argv[++i];
-				/* Fail safe routine to keep sure that the original file can
-				 * never be overwritten
-				 */
-				if ( strcmp(export_filename, filename) == 0 ) {
-					fprintf(stderr, _("Input file name is equal to output file name. Please choose a different output file name."));
-					fprintf(stderr, "\n");
-					exit(1);
-				}
-				/* FALLTHROUGH */
-			case ARG_NONE:
-				writeHeader = option->writeHeader;
-				writeFooter = option->writeFooter;
-				writeLine = option->writeLine;
-				break;
-			case ARG_OPTION:
+		if(option->class == ARG_CLASS_OUTPUT && outputmode >= 0) {
+			fprintf(stderr, _("Output mode cannot be set twice. Has been set with '%s' already. Discarding option '%s'."), options[outputmode].id, option->id);
+			fprintf(stderr, "\n");
+			/* Consume the next parametere containing the output file */
+			if((option->argument == ARG_OUTPUT) && (i < argc))
 				i++;
-				/* FALLTHROUGH */
-			case ARG_BOOLEAN:
-				/* There can be many -- call them all: */
-				if (option->writeHeader &&
-					option->writeHeader(NULL, p_dbf,
-					filename, argv[i]))
-					exit (1);
-				break;
-			default:
-				assert(!"Unknown type of option argument");
+		} else {
+			if(option->class == ARG_CLASS_OUTPUT)
+				outputmode = optionindex;
+			switch (option->argument) {
+				case ARG_OUTPUT:
+					if (export_filename) {
+						fprintf(stderr,
+							_("Output file name was already specified as ``%s''. Try the --help for a list of options."), export_filename);
+						fprintf(stderr, "\n");
+						exit(1);
+					}
+					export_filename = argv[++i];
+					/* Fail safe routine to keep sure that the original file can
+					 * never be overwritten
+					 */
+					if ( strcmp(export_filename, filename) == 0 ) {
+						fprintf(stderr, _("Input file name is equal to output file name. Please choose a different output file name."));
+						fprintf(stderr, "\n");
+						exit(1);
+					}
+					/* FALLTHROUGH */
+				case ARG_NONE:
+					writeHeader = option->writeHeader;
+					writeFooter = option->writeFooter;
+					writeLine = option->writeLine;
+					break;
+				case ARG_OPTION:
+					i++;
+					/* FALLTHROUGH */
+				case ARG_BOOLEAN:
+					/* There can be many -- call them all: */
+					if (option->writeHeader &&
+						option->writeHeader(NULL, p_dbf,
+						filename, argv[i]))
+						exit (1);
+					break;
+				default:
+					assert(!"Unknown type of option argument");
+			}
 		}
 	}
 

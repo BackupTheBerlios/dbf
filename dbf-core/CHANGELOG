@@ -4,6 +4,11 @@ Please send suggestions, code pieces and comments directly to the authors email
 address [anubisnet group]
 File sorted in order of date of release
 
+0.9		STABLE
+- Do not put the separator char after the last field in csv output (Uwe)
+- Add field type, size and decimals to field name in first line of csv
+  output (Uwe)
+
 0.8		STABLE
 2003-11-09	(Release-Date)
 - Changed the options parsing system and the options id, so that options

@@ -8,6 +8,10 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.10  2003/11/20 15:57:42  rollin_hand
+ * while no conversion option is given, dbf can return a null pointer in line 345 ->fixed
+ * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
+ *
  * Revision 1.9  2003/11/19 06:55:58  steinm
  * - passing a filename '-' to --csv or --sql is treated as stdout
  *
@@ -249,6 +253,7 @@ main(int argc, char *argv[])
 	headerMethod	 writeHeader = NULL;
 	lineMethod	 writeLine = printDBF;
 	unsigned char	*record;
+	char *flag_byte;
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s [option][argument] dbf-file, -h for help\n", *argv);
@@ -341,7 +346,7 @@ main(int argc, char *argv[])
 	if (verbosity > 0)
 		banner();
 
-	if(0 == strcmp(export_filename, "-"))
+	if(!export_filename || 0 == strcmp(export_filename, "-"))
 		output = stdout;
 	else
 		output = export_open(export_filename);
@@ -368,8 +373,7 @@ main(int argc, char *argv[])
 
 		//lseek(dbfhandle, rotate2b(db->header_length) + 1, SEEK_SET);
 		
-		/* At this point we look if the following data set is deleted */		
-		char *flag_byte;
+		/* At this point we look if the following data set is deleted */				
 		lseek(dbfhandle, rotate2b(db->header_length), SEEK_SET);
 		
 		if ( (flag_byte = malloc(1)) == NULL ) {

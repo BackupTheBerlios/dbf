@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.8  2003/11/13 11:19:34  rollin_hand
+ * - erased the warning in the fail safe routine
+ *
  * Revision 1.7  2003/11/11 15:53:13  rollin_hand
  * - added fold marks to some functions
  * - added --version to options
@@ -305,12 +308,9 @@ main(int argc, char *argv[])
 			}			
 			export_filename = argv[++i];
 			/* Fail safe routine to keep sure that the original file can
-			 * never be overwritten
-			 * this strcmp creates during compilation an error of type:
-			 * warning: comparison between pointer and integer - but why?
-			 * -- Bjoern Berg, 2003-10-06
+			 * never be overwritten			 
 			 */
-			if ( strcmp(export_filename, filename) == NULL ) {
+			if ( strcmp(export_filename, filename) == 0 ) {
 				fprintf(stderr, "\nERROR: Input file same as output file\n"
 					"Please change the name of the output file or refer to the help.\n");
 				exit(1);	

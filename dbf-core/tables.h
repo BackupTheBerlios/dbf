@@ -18,6 +18,14 @@
  *	 first implementation, split off dbf.c		
  ************************************************************************************/
 
+
+/*
+ * These defines are used to distinguish between types in the 
+ * dbf fields.
+ */
+#define IS_STRING 1
+#define IS_NUMERIC 2
+
 /* table file header
  * Standard dBASE Header
  * Additional dBASE Header FLAGS

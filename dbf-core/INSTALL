@@ -1,38 +1,57 @@
+
 INSTALLATION INSTRUCTIONS
 =========================
 
-Document Version: 0.3, 2003-05-22
 Author: Bjoern Berg, clergyman@gmx.de
 
-There are several packages of dbf available. In the following, I will expalin
+History:
+
+$Log: INSTALL,v $
+Revision 1.4  2004/03/21 15:34:45  rollinhand
+New instructions for MacOS and Windows added
+
+
+This document is splitted in two parts:
+	- PACKAGE DESCRIPTION
+	- INSTALLATION INSTRUCTIONS
+-------------------------------------------------------------------------------
+
+PACKAGE DESCRIPTION
+===================
+
+There are several packages of dbf available. In the following, I will explain
 which package you need for your platform:
 
 dbf-x.x.src.tar.gz:
 -------------------
-This package contains all sources and includes, the complete documentation but 
+This package contains all sources and includes, the complete documentation but
 no binaries. You have to compile your own binaries with this package, this also
 recommends several different development tools on your operating system.
 
 dbf-x.x.bin.ELF.zip:
 --------------------
-This package contains a binary release for Linux/Unix operating systems which runs
-on a x86 architecture.
+This package contains a binary release for Linux/Unix operating systems which
+runs on a x86 architecture.
 
 dbf-x.x.bin.AXP.zip:
 --------------------
-This package contains a binary release Linux/Unix operating systems which runs on
-an Alpha/RISC architecture.
+This package contains a binary release Linux/Unix operating systems which runs
+on an Alpha/RISC architecture.
 
 dbf-x.x.bin.PPC.zip:
 --------------------
-This package contains a binary release Linux/Unix operating systems which runs on a
-PowerPC architecture.
+This package contains a binary release Linux/Unix operating systems which runs
+on a PowerPC architecture.
 
 dbf-x.x.win.zip:
 ----------------
-This package contains a binary release for Windows 95/98/ME/NT/2000/XP which runs 
-on a x86 architecture.
+This package contains a binary release for Windows 95/98/ME/NT/2000/XP which 
+runs on a x86 architecture. Windows XP Home Edition is not supported.
 
+-------------------------------------------------------------------------------
+
+INSTALLATION INSTRUCTIONS
+=========================
 
 These are installation instructions for dbf:
 
@@ -71,16 +90,22 @@ attached with the dbf package.
 Versions since release 0.6
 --------------------------
 
-Since version 0.6 dbf contains a script to build the dbf executable very
-easily. All you need is nmake and link32.exe and some libraries. The script
-expects, that you have a development tool like Visual Studio installed.
+If you have Borland C Compiler installed, you can easily compile dbf
+yourself. Just open a command line switch to dbf's src directory and
+type in:
 
-In the root directory of the downloaded and extracted dbf-package, just
-enter "compile.bat" in a command line an watch the output of compile.bat.
+	make -f Makefile.bcc
+	
+BCC will create a binary named dbf.exe. If BCC is missing some Includes
+or Libraries open the builtins.mak in the src-directory in any text-editor
+of your choice and adopt the switches INCDIR and LIBDIR.
 
-The created executable resides in src/Debug. You can copy it elsewhere.
+Former documentations stated also compilation with Microsofts nmake from
+VisualStudio. This part is now deprecated because dbf.mak is no longer
+up to date. And any try to use nmake with dbf.mak will fail.
 
-If you want dbf executable from everywehre, add the path to dbf to %PATH%.
+For more information how to get and install BCC, please visit the following
+URL: http://dbf.berlios.de/support/doc/compile/windows.html
 
 
 MAC OS
@@ -90,10 +115,9 @@ MacOS X:
 --------
 
 If you have installed a development environment based on the GNU tools, like
-GCC and GDB, you can orientate on the Linux installation guide.	
+GCC and GDB, you can orientate on the Linux installation guide.
 
 MacOS < 10.x
 ------------
 
-At the moment I cannot give installation instructions for Mac operating systems.
-I hope this will change in the future.
+dbf is not compatible with older versions than MacOS X.

@@ -1,8 +1,14 @@
 # Makefile.rules for dbf
 # Version 0.8
+# History:
+# $Log: Makefile.rules,v $
+# Revision 1.4  2003/11/13 11:16:26  rollin_hand
+# changed  to 'gcc' instead of full path
+#
+#
 
 # Compiler flags
-CC = /usr/bin/gcc
+CC = gcc
 CFLAGS = -Wall
 
 # Settings

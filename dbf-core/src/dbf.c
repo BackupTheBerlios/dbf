@@ -6,61 +6,7 @@
  * Version 0.9
  *
  ******************************************************************************
- * History:
- * $Log: dbf.c,v $
- * Revision 1.25  2004/08/30 11:17:10  steinm
- * - fixed segm fault when export file name has no extension in sql output
- *
- * Revision 1.24  2004/08/30 11:13:49  steinm
- * - tablename is created from export file name by removing the path
- *   and the file extension.
- *
- * Revision 1.23  2004/08/30 10:25:50  steinm
- * - handle new options --empty-str-is-null and --usecopy
- *
- * Revision 1.22  2004/08/28 16:30:57  steinm
- * - various new options
- *
- * Revision 1.21  2004/08/27 06:43:35  steinm
- * - started translation of strings
- * - removed a lot of old code
- *
- * Revision 1.20  2004/08/27 05:44:11  steinm
- * - used libdbf for reading the dbf file
- *
- * Revision 1.19  2004/04/25 16:00:52  rollinhand
- * added dbf_open / dbf_close
- *
- * Revision 1.18  2004/04/16 12:29:56  rollinhand
- * fixes a segfault, when no export-filename is given
- *
- * Revision 1.17  2004/04/14 09:46:11  steinm
- * - fixed compiler warning
- *
- * Revision 1.16  2004/03/21 15:33:16  rollinhand
- * Changes in dbf_check()
- *
- * Revision 1.15  2004/03/16 20:56:30  rollinhand
- * Endian Swapping centralized in dbf_read_header
- *
- * Revision 1.14  2004/02/01 12:04:54  rollinhand
- * Some cosmetics
- *
- * Revision 1.13  2003/12/16 19:16:57  rollinhand
- * Corrected handling of deleted datasets, some tunings, see Changelog for more details
- *
- * Revision 1.12  2003/12/03 06:44:13  steinm
- * - checks if filesize equals calculated file size
- * - Paths to a backlink database are taken into account for header_length
- *   calculation but not for processing
- *
- * Revision 1.11  2003/12/02 09:28:05  steinm
- * src/tables.h
- *
- * Revision 1.10  2003/11/20 15:57:42  rollin_hand
- * while no conversion option is given, dbf can return a null pointer in line 345 ->fixed
- * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
- *
+ * $ID: $
  *****************************************************************************/
 
  /** TODO **/

@@ -5,7 +5,7 @@ address [anubisnet group]
 File sorted in order of date of release
 
 0.8		STABLE
-			(Release-Date)
+2003-11-09	(Release-Date)
 - Changed the options parsing system and the options id, so that options
   with a single hyphen can also be used and displayed in the help.
 - Inserted a fail safe routine which checks that the original file will

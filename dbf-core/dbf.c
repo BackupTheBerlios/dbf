@@ -205,6 +205,8 @@ int main (int argc, char *argv[])
 	char *filename;
 	int ppc_override; // Big Endian Check Override
 	int type;
+	char *foo, *p;
+	int k;	
 	ppc_override = 0;
 	
 	
@@ -298,9 +300,7 @@ int main (int argc, char *argv[])
 	{		
 		dbf_read_header(dbfhandle, filename);		
 		header_length = rotate2b(db->header_length) / 32;
-		getHeaderValues(dbfhandle,filename,header_length);
-		char *foo, *p;
-		int i, k;						
+		getHeaderValues(dbfhandle,filename,header_length);							
 		lseek(dbfhandle, rotate2b(db->header_length) + 1, 0);
 		
 		if((foo = (char *)malloc(rotate2b(db->record_length))) == NULL)	{

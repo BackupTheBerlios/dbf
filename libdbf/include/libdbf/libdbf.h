@@ -14,7 +14,7 @@
  * any purpose. It is provided "as is" without express or implied warranty.
  *
  *****************************************************************************
- * $Id: libdbf.h,v 1.3 2004/08/31 12:41:43 steinm Exp $
+ * $Id: libdbf.h,v 1.4 2004/08/31 12:54:01 steinm Exp $
  ****************************************************************************/
 
 #include <sys/types.h>
@@ -227,6 +227,16 @@ const char *dbf_GetDate(P_DBF *p_dbf);
 	\return record length or -1 on error
 */
 int dbf_RecordLength(P_DBF *p_dbf);
+
+/*! \fn int dbf_HeaderSize(P_DBF *p_dbf)
+	\brief dbf_HeaderSize returns length of the header
+	\param *p_dbf the object handle of the opened file
+
+	Returns the length of the header.
+
+	\return header length or -1 on error
+*/
+int dbf_HeaderSize(P_DBF *p_dbf);
 
 /*! \fn int dbf_IsMemo(P_DBF *p_dbf)
 	\brief dbf_IsMemo tells if dbf provides also a memo file

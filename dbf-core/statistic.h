@@ -8,7 +8,8 @@
  *																					
  * History:
  * - Version 0.3.1 - 2003-02-16
- *   Fixing declaration of columns, has shown one line more than exists
+ *   berg: Fixing declaration of columns, has shown one line more than exists
+ *	 jones: removing compiler errors
  *   todo: checking if this influences conversion
  * - Version 0.3 - 2003-01-25
  *   improved handling for dBASE y2k problem
@@ -28,6 +29,7 @@
 
 #include "congraph.h"
 #include "dbfversion.h"
+#include "endian.h"
 
 /* output for header statistic */
 void dbf_file_info (struct DB_HEADER *db)

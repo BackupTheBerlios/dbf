@@ -1,6 +1,0 @@
-# Instructions for BCC
-
-AllFiles: dbf.exe
-
-dbf.exe: $(OBJ)
-	$(CC) -e$(BIN) $(OPTIONS) -I$(INCDIR) -L$(LIBDIR) $(OBJ)

@@ -10,27 +10,7 @@
  ****************************************************************************
  * Functions to write CSV files
  ****************************************************************************
- * History:
- * $Log: csv.c,v $
- * Revision 1.16  2004/08/27 09:18:55  steinm
- * - use gettext for outputing text
- *
- * Revision 1.15  2004/08/27 05:44:11  steinm
- * - used libdbf for reading the dbf file
- *
- * Revision 1.14  2004/03/16 20:57:36  rollinhand
- * Code Cleanup
- *
- * Revision 1.13  2003/12/04 12:10:48  steinm
- * - skip 0 at end of field value
- *
- * Revision 1.12  2003/11/12 08:50:32  steinm
- * - simplyfied the masking of the separator char within a value of a field
- * - fixed the masking. The separator char is masked with another separator char
- *
- * Revision 1.11  2003/11/12 07:51:02  steinm
- * - put variable declaration at start of function because some older
- *   gcc can handle it otherwise
+ * $Id: csv.c,v 1.17 2004/08/30 11:34:59 steinm Exp $
  ***************************************************************************/
 
 #include <libdbf/libdbf.h>
@@ -186,3 +166,12 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
 	return 0;
 }
 /* }}} */
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: sw=4 ts=4 fdm=marker
+ * vim<600: sw=4 ts=4
+ */

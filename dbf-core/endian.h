@@ -29,35 +29,21 @@ int rotateshort(short);
 // Routine to test if System uses Big Endian
 // or Little Endian
 int IsBigEndian() {
- static char isbigendian=-1;
- if(isbigendian==-1) { 
-     union ID {  
-         unsigned char bytebuffer[4];
-         unsigned long value;
-     } id;
-     //ID id;
-     id.value=0x44332211L;
-     if(id.bytebuffer[0]==0x11)
-		isbigendian=_false;  //little endian
-     if(id.bytebuffer[0]==0x44)
-        isbigendian=_true; // bigendian
- }
- return((char)isbigendian);
+ int i = 1;
+ int c = *((char*)&i);
+ return c == 0;
 }
 
 int rotate2b(short var) {
-	short tmp;	
 	if(IsBigEndian() == _true) {
-		tmp = var;
-		tmp>>=8;
-		var<<=8;
-		var=var^tmp;
+        short tmp = var;
+        var = (tmp >> 8) | ( var << 8);	    
 	}	
 	return var;	
 }
 
-int rotate4b(int var) {
-	int old, tmp;
+unsigned int rotate4b( unsigned int var) {
+	unsigned int old, tmp;
 	if(IsBigEndian() == _true) {	
 		tmp = old = var;
 		// change Byte 4 with Byte 1
@@ -68,10 +54,10 @@ int rotate4b(int var) {
 		tmp=old;	
 		tmp<<=8;
 		old>>=8;
-		tmp&=0x00FF0000;
-		old&=0x0000FF00;
-		tmp|=old;	
-		var|=tmp;
+		tmp &= 0x00FF0000;
+		old &= 0x0000FF00;
+		tmp |= old;	
+		var |= tmp;
 	}	
 	return var;
 }

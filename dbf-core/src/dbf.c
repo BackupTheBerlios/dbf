@@ -3,11 +3,14 @@
  ******************************************************************************
  * Author: Bjoern Berg <clergyman@gmx.de>
  * dbf Reader and Converter for dBASE files
- * Version 0.8
+ * Version 0.8.2
  *
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.11  2003/12/02 09:28:05  steinm
+ * src/tables.h
+ *
  * Revision 1.10  2003/11/20 15:57:42  rollin_hand
  * while no conversion option is given, dbf can return a null pointer in line 345 ->fixed
  * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
@@ -41,8 +44,32 @@ unsigned int keep_deleted = 0;
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.8, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.8.2, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
+
+
+/* dbf_check {{{
+ * checks if dbf file is valid
+ */
+static int
+dbf_check(int fh, const char *file)
+{
+	long filesize, pos, calc_filesize;	
+	
+	pos = lseek(fh, 0L, SEEK_CUR);
+	filesize = lseek(fh, 0L, SEEK_END);
+	lseek(fh, pos, SEEK_SET);	
+	
+	calc_filesize = (rotate2b(db->header_length) + (db->records * db->record_length) + 1) ;
+	
+	if ( calc_filesize != filesize ) {
+		return 0;
+	}
+	
+	return 1;
+}
+/* }}} */
+
 
 /* dbf_read_header {{{
  * reads header from file into struct 
@@ -132,6 +159,9 @@ writeINFOHdr(FILE *output, const struct DB_FIELD * header,
 	return 0;
 }
 
+/* printDBF() {{{
+ * printDBF is the real function that is hidden behind writeLine
+ */
 static int
 printDBF(FILE *output, const struct DB_FIELD * header,
     const unsigned char *value, int header_length,
@@ -145,6 +175,8 @@ printDBF(FILE *output, const struct DB_FIELD * header,
 	}
 	return 0;
 }
+
+/*}}} */
 
 /*
  * Added the hyphes to the id so that ids wit a single hyphe are also possible.
@@ -288,6 +320,16 @@ main(int argc, char *argv[])
 
 	dbfhandle = dbf_open(filename);
 	dbf_read_header(dbfhandle, filename);
+	/* File size reported by the operating system must match the logical file size. 
+	 * Logical file size = ( Length of header + ( Number of records * Length of each record ) )
+	 * Exception: Clipper and Visual FoxPro
+	 */
+	if ( ! dbf_check(dbfhandle, filename) ) {
+		fprintf(stderr, "This type of database is currently not supported.\n");
+		fprintf(stderr, "Maybe your DB is of type Visual FoxPro or dBASE 7.\n");
+		exit(1);
+	}
+	
 	header_length = rotate2b(db->header_length) / 32;
 
 	/*

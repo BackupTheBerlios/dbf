@@ -4,7 +4,9 @@ Please send suggestions, code pieces and comments directly to the authors
 email address [anubisnet group]
 File sorted in order of date of release
 
-0.9.0		STABLE
+0.8.1		STABLE
+2003-20-10	(Release-Date)
+- fixed CSV converting, data sets are now converted properly
 - using '-' as a filename means stdout
 - fixed csv output. separator char within a field value are now treated
   propperly (Uwe)

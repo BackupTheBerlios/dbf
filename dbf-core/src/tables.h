@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: tables.h,v $
+ * Revision 1.6  2004/04/14 07:05:38  rollinhand
+ * Added DB_FSIZE
+ *
  * Revision 1.5  2004/03/16 20:57:36  rollinhand
  * Code Cleanup
  *
@@ -130,6 +133,13 @@ struct DB_MEMO_BLOCK_TOP {
 };
 
 /* [1] Integers stored with the most significant byte first.    */
+
+struct DB_FSIZE {
+	u_int32_t real_filesize;		/* the pysical size of the file, as stated
+									   from filesystem */
+	u_int32_t calc_filesize;		/* the calculated filesize */
+	unsigned char integrity[6];		/* integrity could be: OK, not OK */
+};
 
 
 #endif

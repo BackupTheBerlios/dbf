@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.18  2004/04/16 12:29:56  rollinhand
+ * fixes a segfault, when no export-filename is given
+ *
  * Revision 1.17  2004/04/14 09:46:11  steinm
  * - fixed compiler warning
  *
@@ -350,7 +353,7 @@ main(int argc, char *argv[])
 	int		 dbfhandle;
 	FILE		*output = NULL;
 	int		 header_length, record_length, i;
-	const char	*filename = NULL, *export_filename = NULL;
+	const char	*filename, *export_filename;
 	headerMethod	 writeHeader = NULL;
 	lineMethod	 writeLine = printDBF;
 	unsigned char	*record, *s1, *s2;

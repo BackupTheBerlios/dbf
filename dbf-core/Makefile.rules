@@ -1,9 +1,11 @@
 ##############################################################
 # Makefile.rules for dbf
-# Version 0.9
 #
 # History:
 # $Log: Makefile.rules,v $
+# Revision 1.8  2004/04/25 16:02:51  rollinhand
+# removed iodbf.* from dependings
+#
 # Revision 1.7  2003/12/16 19:15:08  rollinhand
 # Adopted to Version 0.9pre
 #
@@ -31,8 +33,8 @@ PREFIX = /usr/local
 
 # Compiler settings - do not change
 # erased dbfversion.o
-OBJ = an_string.o codepages.o congraph.o csv.o dbf.o endian.o iodbf.o sql.o statistic.o 
-HDR = $(OBJ:%.o=%.h) tables.h
+OBJ = an_string.o codepages.o congraph.o csv.o dbf.o endian.o sql.o statistic.o
+HDR = $(OBJ:%.o=%.h)
 SRC = $(OBJ:%.o=%.c)
 DOC = BUGS ChangeLog README CREDITS MANIFEST INSTALL FAQ
 

@@ -68,6 +68,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 	{
 		const unsigned char *begin, *end;
 		int isstring = (header+1)->field_type == 'M' || (header+1)->field_type == 'C';
+		int isfloat = (header+1)->field_type == 'F' || ( (header+1)->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
 		
 		begin = value;
 		value += (++header)->field_length;
@@ -83,12 +84,22 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		
 		while (*begin == ' ' && begin != end)
 			begin++;
+			
 		if (*begin != ' ') {
+			
 			while (*end == ' ')
 				end--;
-			do {
-				putc(*begin, fp);
-			} while (begin++ != end);
+			
+			if (isfloat) {
+				char *fmt = malloc(20);
+				sprintf(fmt, "%%%d.%df", (++header)->field_length, (++header)->field_decimals);
+				fprintf(fp, fmt, *(double *)begin);
+				begin += (++header)->field_length;
+			} else {
+				do {
+					putc(*begin, fp);
+				} while (begin++ != end);
+			}	
 		}
 
 		if ( isstring && CSVFileType == 'C')

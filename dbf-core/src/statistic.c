@@ -6,31 +6,8 @@
  * dbf Reader and Converter for dBase III, IV, 5.0
  *
  *
- * History:
- * $Log: statistic.c,v $
- * Revision 1.11  2004/08/28 16:30:38  steinm
- * - output header values in hex format
- *
- * Revision 1.10  2004/08/27 09:42:51  steinm
- * - use gettext to output messages
- *
- * Revision 1.9  2004/08/27 09:30:47  steinm
- * - removed separating lines between field information
- *
- * Revision 1.8  2004/08/27 09:18:10  steinm
- * - Output length of header and record
- *
- * Revision 1.7  2004/08/27 05:44:11  steinm
- * - used libdbf for reading the dbf file
- *
- * Revision 1.6  2004/04/19 18:32:47  rollinhand
- * get_db_version can static, should handle unexpected values
- *
- * Revision 1.5  2004/03/16 20:56:30  rollinhand
- * Endian Swapping centralized in dbf_read_header
- *
- * 2003-11-05	berg	get_db_version() and verbosity checks for header values in
- *						dbf_file_info
+ *****************************************************************************
+ * $Id: statistic.c,v 1.12 2004/09/07 15:50:54 steinm Exp $
  ****************************************************************************/
 
 #include "dbf.h"

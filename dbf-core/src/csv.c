@@ -90,6 +90,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 			while (*end == ' ')
 				end--;
 			
+			/* This routine must be verified in several tests */
 			if (isfloat) {
 				char *fmt = malloc(20);
 				sprintf(fmt, "%%%d.%df", (++header)->field_length, (++header)->field_decimals);

@@ -61,15 +61,15 @@
  * - encryption
  * - mdx
  * - language
- * Offsets of this header are the same in all versions of dBASE 
+ * Offsets of this header are the same in all versions of dBASE
  */
 struct DB_HEADER {
 	unsigned char version; 			/* Byte: 0; dBase version */
 	unsigned char last_update[3]; 	/* Byte: 1-3; date of last update */
     //unsigned long records; 		/* Byte: 4-7; number of records in table */
     unsigned int records;			/* Byte: 4-7; number of records in table */
-	u_int16_t header_length;			/* Byte: 8-9; number of bytes in the header */
-	u_int16_t record_length;			/* Byte: 10-11; number of bytes in the record */
+	u_int16_t header_length;		/* Byte: 8-9; number of bytes in the header */
+	u_int16_t record_length;		/* Byte: 10-11; number of bytes in the record */
 	unsigned char reserved01[2];	/* Byte: 12-13; reserved, see specification of dBase databases */
 	unsigned char transaction;		/* Byte: 14; Flag indicating incomplete transaction */
 	unsigned char encryption;		/* Byte: 15; Encryption Flag */

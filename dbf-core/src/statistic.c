@@ -4,25 +4,56 @@
  * Author: Bjoern Berg, September 2002
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBase III, IV, 5.0
- * Version 0.3.1
+ *
  *
  * History:
- * - Version 0.3.1 - 2003-02-16
- *   berg: Fixing declaration of columns, has shown one line more than exists
- *	 jones: removing compiler errors
- *   todo: checking if this influences conversion
- * - Version 0.3 - 2003-01-25
- *   improved handling for dBASE y2k problem
- *	 improved output of table structure
- * - Version 0.2 - 2003-01-21
- *	 added new debug information -> Hex-codes
- * - Version 0.1.1 - September 2002
- * 	 dbf.c splitted to dbf.c and statistic.h, introducing new interfaces
- * - Version 0.1 - June 2002
- *	 first implementation ind dbf.c
+ * 2003-11-05	berg	get_db_version() and verbosity checks for header values in
+ *						dbf_file_info
  ************************************************************************************/
 
 #include "statistic.h"
+#include "dbf.h"
+
+
+char *get_db_version (int version) {
+	char *name;
+	
+	switch (version) {
+		case 0x02:
+			// without memo fields
+			name = "FoxBase";
+			break;
+		case 0x03:
+			// without memo fields
+			name = "FoxBase+/dBASE III+";
+			break;
+		case 0x04:
+			// without memo fields
+			name = "dBASE IV";
+			break;	
+		case 0x05:
+			// without memo fields
+			name = "dBASE 5.0";
+			break;	
+		case 0x83:
+			name = "FoxBase+/dBASE III+";
+			break;		
+		case 0x8B:
+			name = "dBASE IV";
+			break;			
+		case 0x30:
+			// without memo fields
+			name = "Visual FoxPro";
+			break;	
+		case 0xF5:
+			// with memo fields
+			name = "FoxPro 2.0";
+			break;		
+	}
+	
+	return name;				
+}
+
 
 /* output for header statistic */
 void
@@ -30,20 +61,23 @@ dbf_file_info (const struct DB_HEADER *db)
 {
 	int version, memo;
 
-/* 	dbfinit = (int*)dbfexamine(db->version); */
-/* 	dbfexamine(db->version, &version, &memo); */
-	version	= db->version  & DBF_VERSION;
-	memo = db->version  & (DBF_MEMO3 | DBF_MEMO4) ;
+	version	= db->version;
+	memo = (db->version  & 128)==128 ? 1 : 0;	
 	printf("\n-- File statistics\n");
-/* 	printf("dBase version.........: \t %d (%s)\n", dbfinit[0], dbfinit[1]?"with memo":"without memo"); */
-	printf("dBase version.........: \t %d (%s)\n",version, memo?"with memo":"without memo");
-	printf("Date of last update...: \t %d-%02d-%02d\n", 1900 + db->last_update[0], db->last_update[1], db->last_update[2]);
-	printf("Number of records.....: \t %d (%08xd)\n", rotate4b(db->records), rotate4b(db->records));
-	printf("Length of header......: \t %d (%04xd)\n", rotate2b(db->header_length),
-	rotate2b(db->header_length));
-	printf("Record length.........: \t %d (%04xd)\n", rotate2b(db->record_length), rotate2b(db->record_length));
-	printf("Columns in file.......: \t %d \n", (rotate2b(db->header_length)/32)-1);
-	printf("Rows in file..........: \t %d\n\n", rotate4b(db->records));
+	printf("dBase version.........: \t %s (%s)\n",
+			get_db_version(version), memo?"with memo":"without memo");
+	printf("Date of last update...: \t %d-%02d-%02d\n", 
+			1900 + db->last_update[0], db->last_update[1], db->last_update[2]);
+	printf("Number of records.....: \t %d (%08xd)\n", 
+			rotate4b(db->records), rotate4b(db->records));
+	printf("Length of header......: \t %d (%04xd)\n", 
+			rotate2b(db->header_length), rotate2b(db->header_length));
+	printf("Record length.........: \t %d (%04xd)\n", 
+			rotate2b(db->record_length), rotate2b(db->record_length));
+	printf("Columns in file.......: \t %d \n", 
+			(rotate2b(db->header_length)/32)-1);
+	printf("Rows in file..........: \t %d\n\n", 
+			rotate4b(db->records));
 }
 
 /* output for field statistic */

@@ -239,7 +239,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 				putc('0', fp);
 			}	
 			
-		} else if (dbf->field_type == 'B') {	
+		} else if (dbf->field_type == 'B' || dbf->field_type == 'F') {	
 		
 			char *fmt = malloc(20);
 			sprintf(fmt, "%%%d.%df", dbf->field_length, dbf->field_decimals);

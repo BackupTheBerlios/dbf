@@ -140,7 +140,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				 * Type logical is not supported in SQL, you have to use number
 				 * resp. numeric to keep to the standard
 				 */
-				 fprintf(fp, "numeric(1,0)");
+				 fprintf(fp, "boolean");
 			break;	 	
 			default:
 				fprintf(fp, "/* unsupported type ``%c'' */",
@@ -182,6 +182,11 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		begin = value;
 		value += dbf->field_length; /* The next field */
 		end = value;
+
+		/* Remove NULL chars at end of field */
+		while(--end != begin && *end == '\0')
+			;
+		end++;
 
 		if (isdate) {
 			/*
@@ -234,9 +239,9 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		if (isbool) {
 			char sign = *begin++;				
 			if ( sign == 't' || sign == 'y' || sign == 'T' || sign == 'Y') {
-				putc('1', fp);
+				fprintf(fp, "true");
 			} else { 
-				putc('0', fp);
+				fprintf(fp, "false");
 			}	
 			
 		} else if (dbf->field_type == 'B' || dbf->field_type == 'F') {	

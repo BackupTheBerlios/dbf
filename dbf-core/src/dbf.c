@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.17  2004/04/14 09:46:11  steinm
+ * - fixed compiler warning
+ *
  * Revision 1.16  2004/03/21 15:33:16  rollinhand
  * Changes in dbf_check()
  *
@@ -534,7 +537,7 @@ main(int argc, char *argv[])
 			    	filename, export_filename);
 			} else if ( verbosity >=1 && record[0] != 0x1A) {
 				fprintf(stderr, "The dataset at offset %i is set to 'deleted'.\n",
-								 lseek(dbfhandle,0L,SEEK_CUR));
+								 (int) lseek(dbfhandle,0L,SEEK_CUR));
 			}
 		}
 		free(record);

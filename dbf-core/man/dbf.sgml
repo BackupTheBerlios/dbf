@@ -17,10 +17,10 @@ manpage.1: manpage.sgml
   -->
 
   <!-- Fill in your name for FIRSTNAME and SURNAME. -->
-  <!ENTITY dhfirstname "<firstname>FIRSTNAME</firstname>">
-  <!ENTITY dhsurname   "<surname>SURNAME</surname>">
+  <!ENTITY dhfirstname "<firstname>UWE</firstname>">
+  <!ENTITY dhsurname   "<surname>STEINMANN</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>Juni 16, 2003</date>">
+  <!ENTITY dhdate      "<date>August 27, 2004</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>SECTION</manvolnum>">
@@ -44,7 +44,7 @@ manpage.1: manpage.sgml
       &dhsurname;
     </author>
     <copyright>
-      <year>2003</year>
+      <year>2004</year>
       <holder>&dhusername;</holder>
     </copyright>
     &dhdate;
@@ -57,7 +57,7 @@ manpage.1: manpage.sgml
   <refnamediv>
     <refname>&dhpackage;</refname>
 
-    <refpurpose>Read DBase files and write csv or sql output</refpurpose>
+    <refpurpose>Read dBASE files and write csv or sql output</refpurpose>
   </refnamediv>
   <refsynopsisdiv>
     <cmdsynopsis>
@@ -65,7 +65,16 @@ manpage.1: manpage.sgml
 
       <arg><option>-h <replaceable></replaceable></option></arg>
 
+      <arg><option>--view-info </option></arg>
       <arg><option>--sql <replaceable>FILE</replaceable></option></arg>
+      <arg><option>--csv <replaceable>FILE</replaceable></option></arg>
+      <arg><option>--trim <replaceable>l|r|b</replaceable></option></arg>
+      <arg><option>--debug <replaceable>0-9</replaceable></option></arg>
+      <arg><option>--keepdel </option></arg>
+      <arg><option>--nodrop </option></arg>
+      <arg><option>--nocreate </option></arg>
+      <arg><option>--separator CHAR</option></arg>
+      <arg><option>--tablename NAME</option></arg>
       <arg><option><replaceable>FILE</replaceable></option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -75,19 +84,15 @@ manpage.1: manpage.sgml
     <para>This manual page documents briefly the
       <command>&dhpackage;</command> command.</para>
 
-    <para>This manual page was written for the &debian; distribution
-      because the original program does not have a manual page.
-      </para>
-
-    <para><command>&dhpackage;</command> is a program that reads DBase files
-		  and converts them to csv, sql or simply dumps its content in dbfs own
+    <para><command>&dhpackage;</command> is a program that reads dBASE files
+		  and converts them to csv, sql or simply dumps its content in dbf's own
 			format.</para>
 
   </refsect1>
   <refsect1>
     <title>OPTIONS</title>
 
-    <para>These programs follow the usual &gnu; command line syntax,
+    <para>This program follows the usual &gnu; command line syntax,
       with long options starting with two dashes (`-').  A summary of
       options is included below.  For a complete description, see the
       <application>Info</application> files.</para>
@@ -110,9 +115,103 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--trim</option></term>
+        <term><option>--view-info</option>
+        </term>
         <listitem>
-          <para>Trim </para>
+          <para>List various information including the table structure of
+					  the dBASE file. This option will supress the output of the
+						record data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--debug {0-9}</option>
+        </term>
+        <listitem>
+          <para>Set debug level to a value between 0 and 9. The default is
+					  0 which supressed all debug messages.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sql FILENAME</option>
+        </term>
+        <listitem>
+          <para>Converts the dBASE file into sql statements suitable for
+					  most databases. The output will by default include statements
+						to drop an exiting table with the same name, recreate the table
+						structure and insert the records. Use the option
+						<option>--nodrop</option> if the output may not contain the
+						sql statement to drop an exiting table. Use
+						<option>--nocreate</option> to prevent recreation of the table.
+						If FILENAME is `-' the ouput will be written to stdout.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--trim {r|l|b}</option></term>
+        <listitem>
+          <para>Trim the values of character fields. Triming a value means
+					  to remove leading and trailing spaces. Field values can be
+					  trimmed on the left (l), right (b), or on both sides (b).
+						This option has only affect in sql output mode. Passing
+						<option>--trim b</option> is usually a good idea to reduce the
+						output file size.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--csv FILENAME</option>
+        </term>
+        <listitem>
+          <para>Converts the dBASE file into lines of comma separated values
+					  suitable for most spread sheets. The first line of the output file
+						contains the field names, its type and size. If FILENAME is `-'
+						the ouput will be written to stdout. Use the option
+						<option>--separator</option> to set a different field separator
+						than a comma.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--separator CHAR</option>
+        </term>
+        <listitem>
+          <para>Set the char which is used to separate field values in
+					  csv output.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--tablename NAME</option>
+        </term>
+        <listitem>
+          <para>Explixitly set the name of the table in the sql output. If
+					  tablename is not set the name of the export file will be
+						used.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--keepdel</option>
+        </term>
+        <listitem>
+          <para>Also output records which are marked as `deleted'.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--nodrop</option>
+        </term>
+        <listitem>
+          <para>Prevent the output of the sql statement to drop a table.
+					  This option is useful if there is no table to drop and prevent
+						an error message. The option has only affect in sql output
+						mode.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--nocreate</option>
+        </term>
+        <listitem>
+          <para>Prevent the output of the sql statement to create a table
+					  with the structure of the dBASE file. This is most usefull if
+						the table already exists and should only be populated with
+						further records. This option should be used together
+						with <option>--nodrop</option>. The option has only affect in
+						sql output mode.</para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -122,20 +221,12 @@ manpage.1: manpage.sgml
 
     <para>bar (1), baz (1).</para>
 
-    <para>The programs are documented fully by <citetitle>The Rise and
-      Fall of a Fooish Bar</citetitle> available via the
-      <application>Info</application> system.</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
 
-    <para>This manual page was written by &dhusername; &dhemail; for
-      the &debian; system (but may be used by others).  Permission is
-      granted to copy, distribute and/or modify this document under
-      the terms of the &gnu; Free Documentation
-      License, Version 1.1 or any later version published by the Free
-      Software Foundation; with no Invariant Sections, no Front-Cover
-      Texts and no Back-Cover Texts.</para>
+    <para>This manual page was written by &dhusername; &dhemail;
+      </para>
 
   </refsect1>
 </refentry>

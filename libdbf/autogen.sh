@@ -1,14 +1,32 @@
 #!/bin/sh
 #
 # autogen.sh glue for CMU Cyrus IMAP
-# $Id: autogen.sh,v 1.2 2004/06/18 14:54:31 steinm Exp $
+# $Id: autogen.sh,v 1.3 2004/09/15 20:33:53 rollinhand Exp $
 #
 # Requires: automake, autoconf, dpkg-dev
 set -e
 
+# Check if needed software is available on system
+for tool in aclocal autoheader automake libtoolize intltoolize autoconf; do
+	if [ ! `whereis ${tool} | awk '{print $2}'` ] ; then
+		echo "${tool} not found - please install first!"
+		exit
+	else 
+		echo "${tool} found - OK!"		
+	fi	
+done
+
 # Refresh GNU autotools toolchain.
+# Test if /usr/share/automake exists, else prove for automake-$version
+# This test-case is e.g. needed for SuSE distributions
+automk="automake"
+test ! -d /usr/share/automake && {
+	version=`automake --version | head -n 1 | awk '{print $4}' | awk -F. '{print $1$2}'`
+	automk="automake-${version}"
+}
+ 	
 for i in config.guess config.sub missing install-sh mkinstalldirs ; do
-	test -r /usr/share/automake/${i} && {
+	test -r /usr/share/${automk}/${i} && {
 		rm -f ${i}
 		cp /usr/share/automake/${i} .
 	}

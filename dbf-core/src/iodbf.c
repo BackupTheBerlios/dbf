@@ -1,15 +1,14 @@
 /***********************************************************************************
  * iodbf.c
  * inherits the standard I/O file commands
- * Author: Bjoern Berg, September 2002
- * Email: clergyman@gmx.de
- * dbf Reader and Converter for dBase 3
- * Version 0.2
+ * Author: Bjoern Berg, <clergyman@gmx.de>
+ * dbf Reader and Converter for dBase 3 
  *
  * History:
- * 	2003-02-16	jones	Added another default for the #ifdef OS block ..
- * - Version 0.1 - September 2002
- *	 first implementation
+ * $Log: iodbf.c,v $
+ * Revision 1.3  2003/11/13 11:22:55  rollin_hand
+ * - dBASE files should be opened in binary mode because in text mode CR/LF translation occurs, leads to data corruption
+ *
  ************************************************************************************/
 
 #include <stdio.h>
@@ -27,7 +26,7 @@ dbf_open(const char *file)
 	if (file[0] == '-' && file[1] == '\0')
 		return fileno(stdin);
 
-	if ((dbfhandle = open(file, O_RDONLY)) == -1) {
+	if ((dbfhandle = open(file, O_RDONLY|O_BINARY)) == -1) {
 		fprintf(stderr, "Can not open file %s.\n"
 		    "try --help or -h for usage\n", file);
 		exit(1);

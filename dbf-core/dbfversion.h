@@ -19,13 +19,11 @@
 // the above description works for all dBASE versions since dBASE III
 
 
-int dbfexamine(char byte) {
-	int dbfinit[2] = {};	
-	
+int dbfexamine(unsigned char byte, int *version, int *memo) {
 	// extract version
-	dbfinit[0] = ((int)byte & 7);		
+	*version = ((int)byte & 7);		
 	// detect if memofile is used
-	dbfinit[1] = ((int)byte & 128)==128 ? 1 : 0; 
+	*memo = ((int)byte & 128)==128 ? 1 : 0; 
 		
-	return (int)dbfinit;
+	return 1;
 }

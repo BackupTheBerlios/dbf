@@ -3,9 +3,11 @@
  * Author: Bjoern Berg, June 2002
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBASE files
- * Version 0.7
+ * Version 0.8
  *
  * History:
+ * - Version 0.8 - 2003-11-09
+ *   see CHANGELOG for more details
  * - Version 0.7 - September 2003
  *   completely rewritten version by Mikhail Teterin
  *   for a complete list of nower and former changes please have a look at CHANGELOG
@@ -22,7 +24,9 @@ static struct DB_FIELD *header;
 static int convert = 1;
 
 int	isbigendian;
+unsigned int dbversion = 0x00;
 unsigned int verbosity = 1;
+unsigned int keep_deleted = 0;
 
 static int
 dbf_read_header(int fh, const char *file)
@@ -31,7 +35,7 @@ dbf_read_header(int fh, const char *file)
 		perror(file);
 		exit(1);
 	}
-
+	dbversion = db->version;
 	return 1;
 }
 
@@ -63,6 +67,15 @@ setNoConv(FILE *output, const struct DB_FIELD * header,
     const char *filename, const char *level)
 {
 	convert = 0;
+	return 0;
+}
+
+static int
+setKeepDel (FILE *output, const struct DB_FIELD * header,
+    int header_length,
+    const char *filename, const char *level)
+{
+	keep_deleted = 1;
 	return 0;
 }
 
@@ -151,10 +164,16 @@ struct options {
 		"do not run each each record through charset converters",
 		"to use the experimental converters"
 	},
+	/* not supported yet */
+	/*{
+		"--keepdel",	setKeepDel,	NULL,		ARG_NONE,
+		"converts also deleted datasets",
+		"do no conversion"
+	},*/
 	{
 		"--debug",	setVerbosity,	NULL,		ARG_OPTION,
 		"{0-9} -- set the debug level. 0 is the quietest",
-		"1"
+		"0"
 	},
 	{	NULL	}
 };
@@ -162,7 +181,7 @@ struct options {
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.8, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.7.5, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
 
 /* Help */
@@ -305,7 +324,27 @@ main(int argc, char *argv[])
 			fprintf(stderr, "Export from %s to %s\n",filename,
 			    output == stdout ? "stdout" : export_filename);
 
-		lseek(dbfhandle, rotate2b(db->header_length) + 1, SEEK_SET);
+		//lseek(dbfhandle, rotate2b(db->header_length) + 1, SEEK_SET);
+		
+		/* At this point we look if the following data set is deleted */		
+		char *flag_byte;
+		lseek(dbfhandle, rotate2b(db->header_length), SEEK_SET);
+		
+		if ( (flag_byte = malloc(1)) == NULL ) {
+			perror("malloc");
+			exit(1);
+		}  
+		
+		if ( -1 == read(dbfhandle, flag_byte, 1) ) {
+			perror("reading Flag Byte");
+			exit(1);
+		}
+		
+		if (*flag_byte == '*' && keep_deleted == 0) {
+			fputc('#', output);			
+		}
+		*flag_byte = *(record + record_length - 1);
+		
 		while ((i = read(dbfhandle, record, record_length)))
 		{
 			if (i == -1) {

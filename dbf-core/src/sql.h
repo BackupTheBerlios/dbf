@@ -34,7 +34,8 @@
 #endif
 
 #include "an_string.h"
-#include "tables.h"
+#include "dbf.h"
+
 
 int setNoDrop (FILE *fp, const struct DB_FIELD * header,
     int header_length, const char *input, const char *separator);

@@ -3,12 +3,15 @@
  ******************************************************************************
  * dbf Reader and Converter for dBASE files
  * Author: Bjoern Berg <clergyman@gmx.de>
- *  
+ *
  ******************************************************************************
  * This includes enable dbf to write CSV files
  ******************************************************************************
- * History: 
+ * History:
  * $Log: csv.h,v $
+ * Revision 1.5  2004/04/25 15:21:10  rollinhand
+ * replaced tables.h with dbf.h
+ *
  * Revision 1.4  2003/11/11 15:07:08  rollin_hand
  * added cvs keyword log:
  *
@@ -38,7 +41,6 @@
 /*
  * Special anubisnet includes
  */
-#include "tables.h"
 #include "an_string.h"
 #include "dbf.h"
 

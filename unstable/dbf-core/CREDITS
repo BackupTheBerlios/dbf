@@ -9,6 +9,10 @@ dbf-core and GUI
 Ross Jones, ross@companyofarchers.org:
 A lot of fixes and a helpful hand while porting dbf to PPC, especially MacOS X.
 
+Mikhail Teterin
+He has mainly written the code for dbf 0.7 and has improved a lot of features
+dbf offers. The entire code was rewritten by him.
+
 
 Contributors:
 =============

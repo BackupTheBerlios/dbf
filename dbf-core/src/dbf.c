@@ -8,6 +8,10 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.21  2004/08/27 06:43:35  steinm
+ * - started translation of strings
+ * - removed a lot of old code
+ *
  * Revision 1.20  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -71,49 +75,8 @@ unsigned int dbc = 0;
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);
-}
-/* }}} */
-
-/* dbf_open() {{{
- * open the the current dbf file and returns file handler
- */
-int dbf_open(const char *file)
-{
-	int dbfhandle;
-
-	if (file[0] == '-' && file[1] == '\0')
-		return fileno(stdin);
-
-	if ((dbfhandle = open(file, O_RDONLY|O_BINARY)) == -1) {
-		fprintf(stderr, "Cannot open file %s.\n"
-		    "try --help or -h for usage\n", file);
-		exit(1);
-	}
-
-	return dbfhandle;
-}
-/* }}} */
-
-/* dbf_close() {{{
- * close the current open dbf file
- * incl. error handling routines
- */
-int dbf_close(int fh, const char *file)
-{
-	if ( fh == fileno(stdin) )
-		return 0;
-
-	if( (close(fh)) == -1 ) {
-		fputs("Cannot close ", stderr);
-		perror(file);
-		return 1;
-	}
-
-	if (verbosity > 2)
-		fprintf(stderr, "File %s was closed successfully.\n", file);
-
-	return 0;
+	fprintf(stderr, _("dBase Reader and Converter V. " VERSION ", (c) 2002 - 2004 by Bjoern Berg"));
+	fprintf(stderr, "\n");
 }
 /* }}} */
 
@@ -141,12 +104,14 @@ export_close(FILE *fp, const char *file)
 	if (fp == stdout)
 		return 0;
 	if (fclose(fp)) {
-		fputs("Cannot close File ", stderr);
+		fprintf(stderr, _("Cannot close File "));
 		perror(file);
 		return 1;
 	}
-	if (verbosity > 2)
-		fprintf(stderr, "Export file %s was closed successfully.\n",file);
+	if (verbosity > 2) {
+		fprintf(stderr, _("Export file %s was closed successfully."), file);
+		fprintf(stderr, "\n");
+	}
 	return 0;
 }
 /* }}} */
@@ -220,32 +185,6 @@ dbf_check(int fh, const char *file)
 #endif
 /* }}} */
 
-/* getHeaderValues {{{
- * fills the struct DB_FIELD with field names and other values
- */
-#ifdef kkk
-static int
-getHeaderValues(int fh, const char *file, int header_length)
-{
-	struct DB_FIELD *h;
-	header = malloc(sizeof(struct DB_FIELD) * header_length);
-	if (header == NULL) {
-		perror("malloc");
-		exit(1);
-	}
-
-	for (h = header + 1; --header_length; h++)
-	{
-		if((read(fh, h, sizeof(struct DB_FIELD))) == -1) {
-			perror(file);
-			exit(1);
-		}
-	}
-	return 0;
-}
-#endif
-/* }}} */
-
 /* setNoConv() {{{
  * defines if charset converter should be used
  */
@@ -274,7 +213,8 @@ setVerbosity(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	if (level[1] != '\0' || level[0] < '0' || level[0] > '9') {
-		fprintf(stderr, "Invalid debug level ``%s''. Must be from 0 to 9\n", level);
+		fprintf(stderr, _("Invalid debug level ``%s''. Must be from 0 to 9"), level);
+		fprintf(stderr, "\n");
 		return 1;
 	}
 	verbosity = level[0] - '0';
@@ -400,9 +340,12 @@ usage(const char *pname)
 {
 	struct options *option;
 	banner();
-	fprintf(stderr, "Usage:\n\t%s [options] dbf-file\n"
-	    "\tOutput the contents of the dBASE table file (.dbf).\n"
-	    "Available options:\n", pname);
+	fprintf(stderr, _("Usage: %s [options] dbf-file"), pname);
+	fprintf(stderr, "\n");
+	fprintf(stderr, _("Output the contents of the dBASE table file (.dbf)."));
+	fprintf(stderr, "\n\n");
+	fprintf(stderr, _("Available options:"));
+	fprintf(stderr, "\n");
 
 	for (option = options; option->id; option++)
 		if (option->def_behavior == NULL) {
@@ -414,9 +357,12 @@ usage(const char *pname)
 		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
 		    	option->id, option->help, option->def_behavior);
 		}
-	fputs("*-marked options are currently mutually exclusive.\n"
-	    "The last specified takes precedence.\n", stderr);
-	fputs("A single dash (``-'') as a filename specifies stdin or stdout\n", stderr);
+	fprintf(stderr, _("Options marked with ``*'' are currently mutually exclusive."));
+	fprintf(stderr, "\n");
+	fprintf(stderr, _("The last specified takes precedence."));
+	fprintf(stderr, "\n");
+	fprintf(stderr, _("A single dash (``-'') as a filename specifies stdin or stdout"));
+	fprintf(stderr, "\n");
 	exit(1);
 }
 /* }}} */
@@ -441,7 +387,7 @@ main(int argc, char *argv[])
 	/* Check if someone needs help */
 	for(i=1; i < argc; i++)
 		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0 || strcmp(argv[i],"/?")==0)
-			usage(*argv);	/* Does not return */
+			usage(PACKAGE_NAME);	/* Does not return */
 
 	/* Check if someone wants only version output */
 	for(i=1; i < argc; i++) {

@@ -7,6 +7,10 @@
  * 
  * History:
  * $Log: dbf.h,v $
+ * Revision 1.10  2004/08/27 06:43:35  steinm
+ * - started translation of strings
+ * - removed a lot of old code
+ *
  * Revision 1.9  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -21,10 +25,18 @@
  *
  ***********************************************************************************/
 
-#ifndef __DBF_CORE__
-#define __DBF_CORE__
+#ifndef __DBF_H__
+#define __DBF_H__
 
+#include "config.h"
 #include <libdbf/libdbf.h>
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(a) dgettext(GETTEXT_PACKAGE, a)
+#else
+#define _(a) a
+#endif
 
 /*
  * special anubisnet and dbf includes

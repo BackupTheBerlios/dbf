@@ -9,6 +9,9 @@
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.12  2004/08/27 09:18:55  steinm
+ * - use gettext for outputing text
+ *
  * Revision 1.11  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -64,8 +67,7 @@ int setSQLTrim(FILE *fp, P_DBF *p_dbf,
 			return 0;
 		invalid:
 		default:
-			fprintf(stderr, "Invalid trim mode ``%s''. "
-			    "Expecting ``r'', ``l'', or ``b'' for both",
+			fprintf(stderr, _("Invalid trim mode ``%s''. Expecting ``r'', ``l'', or ``b'' for both."),
 			    mode);
 			return 1;
 	}
@@ -118,8 +120,7 @@ int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
 				 * supported by dbf.
 				 * - berg, 2003-09-08
 				 */
-				fprintf(stderr, "Invalid mode. "
-			    "dbf cannot convert this dBASE file. Memo fields are not yet supported.");
+				fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not yet supported."));
 				return 1;
 			break;
 			case 'I':
@@ -149,8 +150,7 @@ int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
 					l2 = field_decimals;
 					fprintf(fp, "numeric(%d, %d)", l1, l2);
 				} else if ( dbversion == dBase3 ) {
-				    fprintf(stderr, "Invalid mode. "
-			    	"dbf cannot convert this dBASE file. Memo fields are not supported.");
+				    fprintf(stderr, _("Invalid mode. Cannot convert this dBASE file. Memo fields are not supported."));
 					return 1;
 				}
 

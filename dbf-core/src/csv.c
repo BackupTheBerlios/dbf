@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.16  2004/08/27 09:18:55  steinm
+ * - use gettext for outputing text
+ *
  * Revision 1.15  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -47,8 +50,9 @@ setCSVSep(FILE *fp, P_DBF *p_dbf,
     const char *in /* __unused */, const char *separator)
 {
 	if ( separator[1] && separator[0] != 't' ) {
-		fprintf(stderr, "Separator / Escape char ``%s'' is too long -- must be a single character\n",
+		fprintf(stderr, _("Separator / Escape char ``%s'' is too long -- must be a single character."),
 		    separator);
+		fprintf(stderr, "\n");
 		return 1;
 	} else if ( separator[0] == 't' ) {
 		CSVSeparator = '\t';

@@ -8,7 +8,7 @@
  *			Björn Berg, clergyman@gmx.de
  *
  *****************************************************************************
- * $Id: sql.c,v 1.17 2004/09/07 15:52:42 steinm Exp $
+ * $Id: sql.c,v 1.18 2004/09/09 08:18:36 steinm Exp $
  ****************************************************************************/
 
 #include "dbf.h"
@@ -259,10 +259,13 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 	for (i = 0; i < columns; i++) {
 		const unsigned char *end, *begin;
 		char field_type;
+		int isstring;
+		int isdate;
+		int isbool;
 		field_type = dbf_ColumnType(p_dbf, i);
-		int isstring = (field_type == 'M' || field_type == 'C');
-		int isdate = (field_type == 'D');
-		int isbool = (field_type == 'L');
+		isstring = (field_type == 'M' || field_type == 'C');
+		isdate = (field_type == 'D');
+		isbool = (field_type == 'L');
 
 		/*
 		 * A string is only trimmed if trimright and/or trimleft is set

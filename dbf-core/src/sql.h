@@ -14,8 +14,8 @@
  *	 first implementation in dbf.c
  ************************************************************************************/
 
-#ifndef _SQL_EXPORT_
-#define _SQL_EXPORT_
+#ifndef _SQL_H_
+#define _SQL_H_
 
 #include <string.h>
 #include <stdio.h>
@@ -37,13 +37,13 @@
 #include "dbf.h"
 
 
-int setNoDrop (FILE *fp, const struct DB_FIELD * header,
-    int header_length, const char *input, const char *separator);
-int setSQLTrim(FILE *fp, const struct DB_FIELD * header, int header_length,
+int setNoDrop (FILE *fp, P_DBF *p_dbf,
+    const char *input, const char *separator);
+int setSQLTrim(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *mode /* ``l''. or ``r'', or ``b'' */);
-int writeSQLHeader(FILE *fp, const struct DB_FIELD * header, int header_length,
+int writeSQLHeader(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *export_filename);
-int writeSQLLine(FILE *fp, const struct DB_FIELD * header,
+int writeSQLLine(FILE *fp, P_DBF *p_dbf,
     const unsigned char *value, int header_length,
     const char *filename,  const char *export_filename);
 

@@ -9,6 +9,9 @@
  ******************************************************************************
  * History:
  * $Log: csv.h,v $
+ * Revision 1.6  2004/08/27 05:44:11  steinm
+ * - used libdbf for reading the dbf file
+ *
  * Revision 1.5  2004/04/25 15:21:10  rollinhand
  * replaced tables.h with dbf.h
  *
@@ -18,8 +21,8 @@
  *
  ******************************************************************************/
 
-#ifndef _ANUBISNET_CSV_
-#define _ANUBISNET_CSV_
+#ifndef _CSV_H_
+#define _CSV_H_
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -44,10 +47,10 @@
 #include "an_string.h"
 #include "dbf.h"
 
-int setCSVSep (FILE *fp, const struct DB_FIELD * header,
-    int header_length, const char *input, const char *separator);
-int writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
-    int header_length, const char *input, const char *output);
-int writeCSVLine (FILE *fp, const struct DB_FIELD * header, const unsigned char *value,
+int setCSVSep (FILE *fp, P_DBF * p_dbf,
+    const char *input, const char *separator);
+int writeCSVHeader (FILE *fp, P_DBF * p_dbf,
+    const char *input, const char *output);
+int writeCSVLine (FILE *fp, P_DBF * p_dbf, const unsigned char *value,
     int header_length, const char *input, const char *output);
 #endif

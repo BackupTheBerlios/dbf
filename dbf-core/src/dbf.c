@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.20  2004/08/27 05:44:11  steinm
+ * - used libdbf for reading the dbf file
+ *
  * Revision 1.19  2004/04/25 16:00:52  rollinhand
  * added dbf_open / dbf_close
  *
@@ -51,14 +54,10 @@
 #include <assert.h>
 #include "dbf.h"
 
-static struct DB_HEADER db_buf, *db = &db_buf;
-static struct DB_FIELD *header;
 static struct DB_FSIZE *fsz;
 
 static int convert = 1;
 
-int	isbigendian;
-unsigned int dbversion = 0x00;
 unsigned int verbosity = 1;
 unsigned int keep_deleted = 0;
 unsigned int sql_drop_table = 1;
@@ -67,16 +66,18 @@ unsigned int sql_drop_table = 1;
 unsigned int dbc = 0;
 
 
+/* banner() {{{
+ */
 static void
 banner()
 {
 	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);
 }
+/* }}} */
 
-/* * * * DBF_OPEN
+/* dbf_open() {{{
  * open the the current dbf file and returns file handler
  */
-
 int dbf_open(const char *file)
 {
 	int dbfhandle;
@@ -92,8 +93,9 @@ int dbf_open(const char *file)
 
 	return dbfhandle;
 }
+/* }}} */
 
-/* * * * DBF_CLOSE
+/* dbf_close() {{{
  * close the current open dbf file
  * incl. error handling routines
  */
@@ -113,11 +115,47 @@ int dbf_close(int fh, const char *file)
 
 	return 0;
 }
+/* }}} */
+
+/* export_open() {{{
+ * open the export file for writing */
+FILE *
+export_open(const char *file)
+{
+	FILE *result;
+	if (file == NULL || (file[0] == '-' && file[1] == '\0'))
+		return stdout;
+	if ((result = fopen(file, "w")) == NULL) {
+		perror(file);
+		exit(1);
+	}
+	return result;
+}
+/* }}} */
+
+/* export_close() {{{
+ * closes the opened file and stops the write-process */
+int
+export_close(FILE *fp, const char *file)
+{
+	if (fp == stdout)
+		return 0;
+	if (fclose(fp)) {
+		fputs("Cannot close File ", stderr);
+		perror(file);
+		return 1;
+	}
+	if (verbosity > 2)
+		fprintf(stderr, "Export file %s was closed successfully.\n",file);
+	return 0;
+}
+/* }}} */
 
 /* dbf_backlink_exists() {{{
  * checks if a backlink is at the end of the field definition, this backlink is
  * about 263 byte
  */
+#ifdef kkk
 static int dbf_backlink_exists(int fh, const char *file)
 {
 	int number_of_fields;
@@ -149,11 +187,16 @@ static int dbf_backlink_exists(int fh, const char *file)
 
 	return 0;
 }
+#endif
 /* }}} */
 
 /* dbf_check {{{
  * checks if dbf file is valid
+ * File size reported by the operating system must match the logical file size.
+ * Logical file size = ( Length of header + ( Number of records * Length of each record ) )
+ * Exception: Clipper and Visual FoxPro
  */
+#ifdef kkkk
 static int
 dbf_check(int fh, const char *file)
 {
@@ -174,33 +217,13 @@ dbf_check(int fh, const char *file)
 	strcpy(fsz->integrity,"OK");
 	return 1;
 }
-/* }}} */
-
-
-/* dbf_read_header {{{
- * reads header from file into struct
- */
-static int
-dbf_read_header(int fh, const char *file)
-{
-	if ((read( fh, (char *)db, sizeof(struct DB_HEADER))) == -1 ) {
-		perror(file);
-		exit(1);
-	}
-	dbversion = db->version;
-	
-	/* Endian Swapping */
-	db->header_length = rotate2b(db->header_length);
-	db->record_length = rotate2b(db->record_length);
-	db->records = rotate4b(db->records);
-	
-	return 1;
-}
+#endif
 /* }}} */
 
 /* getHeaderValues {{{
  * fills the struct DB_FIELD with field names and other values
  */
+#ifdef kkk
 static int
 getHeaderValues(int fh, const char *file, int header_length)
 {
@@ -220,14 +243,14 @@ getHeaderValues(int fh, const char *file, int header_length)
 	}
 	return 0;
 }
+#endif
 /* }}} */
 
 /* setNoConv() {{{
  * defines if charset converter should be used
  */
 static int
-setNoConv(FILE *output, const struct DB_FIELD * header,
-    int header_length,
+setNoConv(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	convert = 0;
@@ -236,8 +259,7 @@ setNoConv(FILE *output, const struct DB_FIELD * header,
 /* }}} */
 
 static int
-setKeepDel (FILE *output, const struct DB_FIELD * header,
-    int header_length,
+setKeepDel (FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	keep_deleted = 1;
@@ -248,8 +270,7 @@ setKeepDel (FILE *output, const struct DB_FIELD * header,
  * sets debug level
  */
 static int
-setVerbosity(FILE *output, const struct DB_FIELD * header,
-    int header_length,
+setVerbosity(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	if (level[1] != '\0' || level[0] < '0' || level[0] > '9') {
@@ -262,12 +283,11 @@ setVerbosity(FILE *output, const struct DB_FIELD * header,
 /* }}} */
 
 static int
-writeINFOHdr(FILE *output, const struct DB_FIELD * header,
-    int header_length,
+writeINFOHdr(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *export_filename)
 {
-	dbf_file_info(db);
-	dbf_field_stat(header,header_length);
+	dbf_file_info(p_dbf);
+	dbf_field_stat(p_dbf);
 	return 0;
 }
 
@@ -275,15 +295,25 @@ writeINFOHdr(FILE *output, const struct DB_FIELD * header,
  * printDBF is the real function that is hidden behind writeLine
  */
 static int
-printDBF(FILE *output, const struct DB_FIELD * header,
-    const unsigned char *value, int header_length,
+printDBF(FILE *output, P_DBF *p_dbf,
+    const unsigned char *record, int header_length,
     const char *filename, const char *export_filename)
 {
-	const struct DB_FIELD *dbf;
-	for (dbf = header + 1; --header_length; dbf++) {
-		printf("%11.11s: %.*s\n", dbf->field_name,
-		    dbf->field_length, value);
-		value += dbf->field_length;
+	int i, columns;
+	const char *value;
+	columns = dbf_NumCols(p_dbf);
+	value = record;
+
+	for (i = 0; i < columns; i++) {
+		char field_type;
+		const char *field_name;
+		int field_length, field_decimals;
+		field_type = dbf_ColumnType(p_dbf, i);
+		field_name = dbf_ColumnName(p_dbf, i);
+		field_length = dbf_ColumnSize(p_dbf, i);
+		field_decimals = dbf_ColumnDecimals(p_dbf, i);
+		printf("%11.11s: %.*s\n", field_name, field_length, value);
+		value += field_length;
 	}
 	return 0;
 }
@@ -394,13 +424,13 @@ usage(const char *pname)
 int
 main(int argc, char *argv[])
 {
-	int		 dbfhandle;
+	P_DBF *p_dbf;
 	FILE		*output = NULL;
 	int		 header_length, record_length, i;
-	const char	*filename, *export_filename;
+	const char	*filename, *export_filename = NULL;
 	headerMethod	 writeHeader = NULL;
 	lineMethod	 writeLine = printDBF;
-	unsigned char	*record, *s1, *s2;
+	unsigned char	*record;
 	unsigned int dataset_deleted;
 
 	if (argc < 2) {
@@ -421,12 +451,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* TODO
-	 * check architecture: little-endian/big-endian XXX Should be done at
-	 * compile time!
-	 */
-	isbigendian = IsBigEndian();
-
 	/* fill filename with last argument
 	 * Test if last argument is an option or a possible valid filename
 	 */
@@ -437,28 +461,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	dbfhandle = dbf_open(filename);
-	dbf_read_header(dbfhandle, filename);
-
-	/* File size reported by the operating system must match the logical file size.
-	 * Logical file size = ( Length of header + ( Number of records * Length of each record ) )
-	 * Exception: Clipper and Visual FoxPro
-	 */
-	if ( ! dbf_check(dbfhandle, filename) && DBF_FILE_CHECK ) {
-		fprintf(stderr, "This type of database is currently not supported.\n");
-		fprintf(stderr, "Maybe your DB is of type Visual FoxPro or dBASE 7.\n");
-		exit(1);
-	}
-
-	/* Looks for backlinks, for more details see dbf_backlink_exists()
-	 */
-	dbc = dbf_backlink_exists(dbfhandle, filename);
-
-	if ( dbc ) {
-		header_length = (db->header_length - 263) / 32;
-	} else {
-		header_length = db->header_length / 32;
-	}
+	p_dbf = dbf_Open(filename);
 
 	/* Scan through arguments looking for options
 	 */
@@ -503,8 +506,8 @@ main(int argc, char *argv[])
 		case ARG_BOOLEAN:
 			/* There can be many -- call them all: */
 			if (option->writeHeader &&
-			    option->writeHeader(NULL, header,
-			    header_length, filename, argv[i]))
+			    option->writeHeader(NULL, p_dbf,
+			    filename, argv[i]))
 				exit (1);
 			break;
 		default:
@@ -519,22 +522,14 @@ main(int argc, char *argv[])
 		output = stdout;
 	else
 		output = export_open(export_filename);
-		 if ( dbc ) {
-			 header_length = (db->header_length - 263) / 32;
-		 } else {
-			 header_length = db->header_length / 32;
-		 }
-
-		record_length = db->record_length;
-		getHeaderValues(dbfhandle,filename,header_length);
 
 	/*
 	 * Call the main header-method, which we skipped during the option parsing
 	 */
-	if (writeHeader && writeHeader(output, header, header_length,
-	    filename, export_filename))
+	if (writeHeader && writeHeader(output, p_dbf, filename, export_filename))
 		exit(1);
 
+	record_length = dbf_RecordLength(p_dbf);
 	if (writeLine) {
 		if ((record = malloc(record_length + 1)) == NULL)	{
 			perror("malloc"); exit(1);
@@ -545,13 +540,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "Export from %s to %s\n",filename,
 			    output == stdout ? "stdout" : export_filename);
 
-		/* Because we do no longer start at the offset header_length+1, we have
-		 * to check manually if the end of the database is reached. This is done in
-		 * the while loop.
-		 */
-		lseek(dbfhandle, db->header_length, SEEK_SET);
-
-		while ((i = read(dbfhandle, record, record_length)))
+		while (0 <= (i = dbf_ReadRecord(p_dbf, record, record_length)))
 		{
 			dataset_deleted = 0;
 
@@ -564,14 +553,6 @@ main(int argc, char *argv[])
 				dataset_deleted = 1;
 			}
 
-			/* Delete the flag byte in the record */
-			s1 = record+1;
-			s2 = s1 + 1;
-
-			do {
-				*s1++ = *s2++;
-			} while (*s2);
-
 			/* Look if the dataset is deleted or the end of the dBASE file was
 			 * reached without notification by read. The end of each dBASE file is
 			 * marked with a dot.
@@ -580,16 +561,15 @@ main(int argc, char *argv[])
 				/* automatically convert options */
 				if (convert)
 					cp850andASCIIconvert(record);
-				writeLine(output, header, record, header_length,
+				writeLine(output, p_dbf, record+1, header_length,
 			    	filename, export_filename);
 			} else if ( verbosity >=1 && record[0] != 0x1A) {
-				fprintf(stderr, "The dataset at offset %i is set to 'deleted'.\n",
-								 (int) lseek(dbfhandle,0L,SEEK_CUR));
+				fprintf(stderr, "The row %i is set to 'deleted'.\n", i);
 			}
 		}
 		free(record);
 	}
-	dbf_close(dbfhandle, filename);
+	dbf_Close(p_dbf);
 	export_close(output, export_filename);
 
 	return 0;

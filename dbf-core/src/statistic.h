@@ -15,7 +15,7 @@
 #include "dbf.h"
 
 static const char *get_db_version (int version);
-void dbf_file_info (const struct DB_HEADER *db);
-void dbf_field_stat (const struct DB_FIELD *header, int header_length);
+void dbf_file_info (P_DBF *p_dbf);
+void dbf_field_stat (P_DBF *p_dbf);
 
 #endif

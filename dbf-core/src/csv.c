@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.15  2004/08/27 05:44:11  steinm
+ * - used libdbf for reading the dbf file
+ *
  * Revision 1.14  2004/03/16 20:57:36  rollinhand
  * Code Cleanup
  *
@@ -27,6 +30,7 @@
  *   gcc can handle it otherwise
  ***************************************************************************/
 
+#include <libdbf/libdbf.h>
 #include "csv.h"
 
 /* CSVFileType describes the type the converted file is of: (C)SV or (T)SV */
@@ -39,8 +43,8 @@ static int CSVTableStructure = 1;
  * allows to change the separator used for CSV output
  */
 int
-setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
-    int header_length, const char *in /* __unused */, const char *separator)
+setCSVSep(FILE *fp, P_DBF *p_dbf,
+    const char *in /* __unused */, const char *separator)
 {
 	if ( separator[1] && separator[0] != 't' ) {
 		fprintf(stderr, "Separator / Escape char ``%s'' is too long -- must be a single character\n",
@@ -60,29 +64,37 @@ setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
  * creates the CSV Header with the information provided by DB_FIELD
  */
 int
-writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
-    int header_length,
+writeCSVHeader (FILE *fp, P_DBF *p_dbf,
     const char *in /* __unused */, const char *out /* __unused */)
 {
-	while (--header_length) {
-		header++;
+	int i, columns;
+
+	columns = dbf_NumCols(p_dbf);
+	for (i = 0; i < columns; i++) {
+		char field_type;
+		const char *field_name;
+		int field_length, field_decimals;
+		field_type = dbf_ColumnType(p_dbf, i);
+		field_name = dbf_ColumnName(p_dbf, i);
+		field_length = dbf_ColumnSize(p_dbf, i);
+		field_decimals = dbf_ColumnDecimals(p_dbf, i);
 		if(CSVTableStructure && CSVSeparator == ',')
 			fputs("\"", fp);
-		fprintf(fp, "%s", header->field_name);
+		fprintf(fp, "%s", field_name);
 		if(CSVTableStructure) {
-			fprintf(fp, ",%c", header->field_type);
-			switch(header->field_type) {
+			fprintf(fp, ",%c", field_type);
+			switch(field_type) {
 				case 'C':
-					fprintf(fp, ",%d", header->field_length);
+					fprintf(fp, ",%d", field_length);
 					break;
 				case 'N':
-					fprintf(fp, ",%d,%d", header->field_length, header->field_decimals);
+					fprintf(fp, ",%d,%d", field_length, field_decimals);
 					break;
 			}
 		}
 		if(CSVTableStructure && CSVSeparator == ',')
 			fputs("\"", fp);
-		if(header_length > 1)
+		if(i > 0)
 			putc(CSVSeparator, fp);
 	}
 	fputs("\n", fp);
@@ -95,22 +107,31 @@ writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
  * creates a line in the CSV document for each data set
  */
 int
-writeCSVLine(FILE *fp, const struct DB_FIELD * header,
+writeCSVLine(FILE *fp, P_DBF *p_dbf,
     const unsigned char *value, int header_length,
     const char *in /* unused */, const char *out /* unused */)
 {
+	int i, columns;
 
-	while (--header_length)
-	{
-		const unsigned char *begin, *end;
+	columns = dbf_NumCols(p_dbf);
+
+	for (i = 0; i < columns; i++) {
+		const unsigned char *end, *begin;
 		int isstring, isfloat;
+		char field_type;
+		const char *field_name;
+		int field_length, field_decimals;
+		int dbversion = dbf_GetVersion(p_dbf);
+		field_type = dbf_ColumnType(p_dbf, i);
+		field_name = dbf_ColumnName(p_dbf, i);
+		field_length = dbf_ColumnSize(p_dbf, i);
+		field_decimals = dbf_ColumnDecimals(p_dbf, i);
 
-		header++;
-		isstring = header->field_type == 'M' || header->field_type == 'C';
-		isfloat = header->field_type == 'F' || ( header->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
+		isstring = field_type == 'M' || field_type == 'C';
+		isfloat = field_type == 'F' || (field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
 
 		begin = value;
-		value += header->field_length;
+		value += field_length;
 		end = value - 1;
 
 		/* Remove NULL chars at end of field */
@@ -136,9 +157,9 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 			/* This routine must be verified in several tests */
 			if (isfloat) {
 				char *fmt = malloc(20);
-				sprintf(fmt, "%%%d.%df", header->field_length, header->field_decimals);
+				sprintf(fmt, "%%%d.%df", field_length, field_decimals);
 				fprintf(fp, fmt, *(double *)begin);
-				begin += header->field_length;
+				begin += field_length;
 			} else {
 				do {
 					/* mask enclosure char */
@@ -153,7 +174,7 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		if ( isstring && CSVFileType == 'C')
 			putc(CSVEnclosure, fp);
 
-		if(header_length > 1)
+		if(i < columns-1)
 			putc(CSVSeparator, fp);
 	}
 	fputs("\n", fp);

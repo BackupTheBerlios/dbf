@@ -9,6 +9,9 @@
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.11  2004/08/27 05:44:11  steinm
+ * - used libdbf for reading the dbf file
+ *
  * Revision 1.10  2004/03/16 21:01:46  rollinhand
  * New flag to prevent Drop/Create statements by user interaction
  *
@@ -17,6 +20,7 @@
  *
  ************************************************************************************/
 
+#include <libdbf/libdbf.h>
 #include "sql.h"
 #include "csv.h"
 #ifndef __DBF_CORE_
@@ -32,8 +36,7 @@ static int	trimleft = 0;
  * defines if charset converter should be used
  */
 int
-setNoDrop(FILE *output, const struct DB_FIELD * header,
-    int header_length,
+setNoDrop(FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	sql_drop_table = 0;
@@ -41,8 +44,7 @@ setNoDrop(FILE *output, const struct DB_FIELD * header,
 }
 /* }}} */
 
-int setSQLTrim(FILE *fp, const struct DB_FIELD * header,
-    int header_length,
+int setSQLTrim(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *mode)
 {
 	if (mode[1] != '\0')
@@ -71,27 +73,35 @@ int setSQLTrim(FILE *fp, const struct DB_FIELD * header,
 
 /* writeSQLHeader */
 /* creates the SQL Header with the information provided by DB_FIELD */
-int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
-    int header_length,
+int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *export_filename)
 {
 	int unsigned l1,l2;
-	const struct DB_FIELD *dbf;
+	int i, columns;
 
+	columns = dbf_NumCols(p_dbf);
 	tablelen = strlen(export_filename) - 4; /* Also used by the line-method */
 
 	fprintf(fp, "-- %s -- \n--\n"
-	    "-- SQL code with the contents of dbf file %s\n\n",export_filename, filename);
+	    "-- SQL code with the contents of dbf file %s\n\n", export_filename, filename);
 	if ( sql_drop_table ) {
-		fprintf(fp, "\ndrop table %.*s;\n"
-	    	"\nCREATE TABLE %.*s(\n",
+		fprintf(fp, "\nDROP TABLE %.*s;\n"
+	    	"\nCREATE TABLE %.*s (\n",
 	    	tablelen, export_filename,
 	    	tablelen, export_filename);
 	}   
 		    
-	for (dbf = header + 1; --header_length; dbf++) {
-		fprintf(fp, "%s\t", dbf->field_name);
-		switch(dbf->field_type) {
+
+	for (i = 0; i < columns; i++) {
+		char field_type;
+		const char *field_name;
+		int field_length, field_decimals;
+		field_type = dbf_ColumnType(p_dbf, i);
+		field_name = dbf_ColumnName(p_dbf, i);
+		field_length = dbf_ColumnSize(p_dbf, i);
+		field_decimals = dbf_ColumnDecimals(p_dbf, i);
+		fprintf(fp, "  %s\t", field_name);
+		switch(field_type) {
 			case 'C':
 				/*
 				 * SQL 2 requests "character varying" at this point,
@@ -100,9 +110,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				 * SQL databases we should use varchar for the moment.
 				 * - berg, 2003-09-08
 				 */
-				fprintf(fp, "varchar(%d)",
-				    dbf->field_type == 'M' ? 10 :
-					dbf->field_length);
+				fprintf(fp, "varchar(%d)", field_type == 'M' ? 10 : field_length);
 			break;
 			case 'M':
 				/*
@@ -118,8 +126,8 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				fputs("int", fp);
 			break;
 			case 'N':
-				l1 = dbf->field_length;
-				l2 = dbf->field_decimals;
+				l1 = field_length;
+				l2 = field_decimals;
 				if((l1 < 10) && (l2 == 0))
 					fputs("int", fp);
 				else
@@ -127,17 +135,18 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 					    l1, l2);
 			break;
 			case 'F':
-				l1 = dbf->field_length;
-				l2 = dbf->field_decimals;
+				l1 = field_length;
+				l2 = field_decimals;
 				fprintf(fp, "numeric(%d, %d)", l1, l2);
 			break;
-			case 'B':
+			case 'B': {
 				/*
 				 * In VisualFoxPro 'B' stands for double so it is an int value
 				 */
+				int dbversion = dbf_GetVersion(p_dbf);
 				if ( dbversion == VisualFoxPro ) {
-					l1 = dbf->field_length;
-				    l2 = dbf->field_decimals;
+					l1 = field_length;
+					l2 = field_decimals;
 					fprintf(fp, "numeric(%d, %d)", l1, l2);
 				} else if ( dbversion == dBase3 ) {
 				    fprintf(stderr, "Invalid mode. "
@@ -146,6 +155,7 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				}
 
 			break;
+			}
 			case 'D':
 				fputs("date", fp);
 			break;
@@ -157,10 +167,9 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				 fprintf(fp, "boolean");
 			break;
 			default:
-				fprintf(fp, "/* unsupported type ``%c'' */",
-				    dbf->field_type);
+				fprintf(fp, "/* unsupported type ``%c'' */", field_type);
 		}
-		if (header_length != 1)
+		if (i > 0)
 			fputc(',', fp);
 		fputs("\n", fp);
 	}
@@ -172,20 +181,24 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 /* writeSQLLine */
 /* fills the SQL table */
 int
-writeSQLLine (FILE *fp, const struct DB_FIELD * header,
+writeSQLLine (FILE *fp, P_DBF *p_dbf, 
     const unsigned char *value, int header_length,
     const char *filename, const char *export_filename)
 {
-	const struct DB_FIELD *dbf;
+	int i, columns;
 
-	fprintf(fp, "INSERT INTO %.*s VALUES(\n",
+	columns = dbf_NumCols(p_dbf);
+
+	fprintf(fp, "INSERT INTO %.*s VALUES (",
 	    tablelen, export_filename);
 
-	for (dbf = header + 1; --header_length; dbf++) {
+	for (i = 0; i < columns; i++) {
 		const unsigned char *end, *begin;
-		int isstring = (dbf->field_type == 'M' || dbf->field_type == 'C');
-		int isdate = (dbf->field_type == 'D');
-		int isbool = (dbf->field_type == 'L');
+		char field_type;
+		field_type = dbf_ColumnType(p_dbf, i);
+		int isstring = (field_type == 'M' || field_type == 'C');
+		int isdate = (field_type == 'D');
+		int isbool = (field_type == 'L');
 
 		/*
 		 * A string is only trimmed if trimright and/or trimleft is set
@@ -194,7 +207,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		 * keep the SQL correctness.	-mi	Aug, 2003
 		 */
 		begin = value;
-		value += dbf->field_length; /* The next field */
+		value += dbf_ColumnSize(p_dbf, i); /* The next field */
 		end = value;
 
 		/* Remove NULL chars at end of field */
@@ -258,12 +271,12 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 				fprintf(fp, "false");
 			}
 
-		} else if (dbf->field_type == 'B' || dbf->field_type == 'F') {
+		} else if (field_type == 'B' || field_type == 'F') {
 
 			char *fmt = malloc(20);
-			sprintf(fmt, "%%%d.%df", dbf->field_length, dbf->field_decimals);
+			sprintf(fmt, "%%%d.%df", dbf_ColumnSize(p_dbf, i), dbf_ColumnDecimals(p_dbf, i));
 			fprintf(fp, fmt, *(double *)begin);
-			begin += dbf->field_length;
+			begin += dbf_ColumnSize(p_dbf, i);
 
 		} else {
 
@@ -291,7 +304,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			putc('\'', fp);
 
 		endfield:
-			if (header_length != 1) {
+			if (i < columns-1) {
 			/* Not the last field */
 				putc(',', fp);
 			}

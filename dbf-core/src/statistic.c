@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.7  2004/08/27 05:44:11  steinm
+ * - used libdbf for reading the dbf file
+ *
  * Revision 1.6  2004/04/19 18:32:47  rollinhand
  * get_db_version can static, should handle unexpected values
  *
@@ -18,8 +21,8 @@
  *						dbf_file_info
  ************************************************************************************/
 
-#include "statistic.h"
 #include "dbf.h"
+#include "statistic.h"
 
 
 static const char *get_db_version (int version) {
@@ -57,47 +60,53 @@ static const char *get_db_version (int version) {
 
 /* output for header statistic */
 void
-dbf_file_info (const struct DB_HEADER *db)
+dbf_file_info (P_DBF *p_dbf)
 {
 	int version, memo;
 
-	version	= db->version;
+	version	= dbf_GetVersion(p_dbf);
 	memo = (version  & 128)==128 ? 1 : 0;
 	printf("\n-- File statistics\n");
 	printf("dBase version.........: \t %s (%s)\n",
-			get_db_version(version), memo?"with memo":"without memo");
-	printf("Date of last update...: \t %d-%02d-%02d\n",
-			1900 + db->last_update[0], db->last_update[1], db->last_update[2]);
+			dbf_GetStringVersion(p_dbf), memo?"with memo":"without memo");
+	printf("Date of last update...: \t %s\n",
+			dbf_GetDate(p_dbf));
 	printf("Number of records.....: \t %d (%08xd)\n",
-			db->records, db->records);
-	printf("Length of header......: \t %d (%04xd)\n",
-			db->header_length, db->header_length);
-	printf("Record length.........: \t %d (%04xd)\n",
-			db->record_length, db->record_length);
+			dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
+//	printf("Length of header......: \t %d (%04xd)\n",
+//			db->header_length, db->header_length);
+//	printf("Record length.........: \t %d (%04xd)\n",
+//			db->record_length, db->record_length);
 	printf("Columns in file.......: \t %d \n",
-			dbc?((db->header_length - 263)/32)-1:
-			(db->header_length/32)-1);
-
-
-
-	printf("Rows in file..........: \t %d\n\n",
-			rotate4b(db->records));
+			dbf_NumCols(p_dbf));
 }
 
 /* output for field statistic */
 #define linelength	73
 
 void
-dbf_field_stat (const struct DB_FIELD *header, int header_length)
+dbf_field_stat (P_DBF *p_dbf)
 {
 	const struct DB_FIELD *dbf;
 	int cross[] = {1,17,25,41,57,73};
+	int i, columns;
+	columns = dbf_NumCols(p_dbf);
 
 	drawline(linelength, cross, (sizeof(cross)/sizeof(int)));
 	printf("| field name\t| type\t| field adress\t| length\t| field dec.\t|\n");
 	drawline(linelength, cross, sizeof(cross)/sizeof(int));
-	for (dbf = header + 1; --header_length; dbf++)
+	for (i = 0; i < columns; i++) {
+		char field_type;
+		const char *field_name;
+		int field_length, field_decimals, field_address;
+		field_type = dbf_ColumnType(p_dbf, i);
+		field_name = dbf_ColumnName(p_dbf, i);
+		field_length = dbf_ColumnSize(p_dbf, i);
+		field_decimals = dbf_ColumnDecimals(p_dbf, i);
+		field_address = dbf_ColumnAddress(p_dbf, i);
+
 		printf("|%13.11s\t| %3c\t| %8x\t| %3d\t\t| %3d\t\t|\n",
-			   dbf->field_name, dbf->field_type, rotate4b(dbf->field_adress), dbf->field_length, dbf->field_decimals);
-	drawline(linelength, cross, sizeof(cross)/sizeof(int));
+			   field_name, field_type, field_address, field_length, field_decimals);
+		drawline(linelength, cross, sizeof(cross)/sizeof(int));
+	}
 }

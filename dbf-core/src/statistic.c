@@ -7,6 +7,10 @@
  *
  *
  * History:
+ * $Log: statistic.c,v $
+ * Revision 1.5  2004/03/16 20:56:30  rollinhand
+ * Endian Swapping centralized in dbf_read_header
+ *
  * 2003-11-05	berg	get_db_version() and verbosity checks for header values in
  *						dbf_file_info
  ************************************************************************************/
@@ -17,7 +21,7 @@
 
 char *get_db_version (int version) {
 	char *name;
-	
+
 	switch (version) {
 		case 0x02:
 			// without memo fields
@@ -30,28 +34,28 @@ char *get_db_version (int version) {
 		case 0x04:
 			// without memo fields
 			name = "dBASE IV";
-			break;	
+			break;
 		case 0x05:
 			// without memo fields
 			name = "dBASE 5.0";
-			break;	
+			break;
 		case 0x83:
 			name = "FoxBase+/dBASE III+";
-			break;		
+			break;
 		case 0x8B:
 			name = "dBASE IV";
-			break;			
+			break;
 		case 0x30:
 			// without memo fields
 			name = "Visual FoxPro";
-			break;	
+			break;
 		case 0xF5:
 			// with memo fields
 			name = "FoxPro 2.0";
-			break;		
+			break;
 	}
-	
-	return name;				
+
+	return name;
 }
 
 
@@ -62,25 +66,25 @@ dbf_file_info (const struct DB_HEADER *db)
 	int version, memo;
 
 	version	= db->version;
-	memo = (db->version  & 128)==128 ? 1 : 0;	
+	memo = (version  & 128)==128 ? 1 : 0;
 	printf("\n-- File statistics\n");
 	printf("dBase version.........: \t %s (%s)\n",
 			get_db_version(version), memo?"with memo":"without memo");
-	printf("Date of last update...: \t %d-%02d-%02d\n", 
+	printf("Date of last update...: \t %d-%02d-%02d\n",
 			1900 + db->last_update[0], db->last_update[1], db->last_update[2]);
-	printf("Number of records.....: \t %d (%08xd)\n", 
-			rotate4b(db->records), rotate4b(db->records));
-	printf("Length of header......: \t %d (%04xd)\n", 
-			rotate2b(db->header_length), rotate2b(db->header_length));
-	printf("Record length.........: \t %d (%04xd)\n", 
-			rotate2b(db->record_length), rotate2b(db->record_length));
+	printf("Number of records.....: \t %d (%08xd)\n",
+			db->records, db->records);
+	printf("Length of header......: \t %d (%04xd)\n",
+			db->header_length, db->header_length);
+	printf("Record length.........: \t %d (%04xd)\n",
+			db->record_length, db->record_length);
 	printf("Columns in file.......: \t %d \n",
-			dbc?((rotate2b(db->header_length) - 263)/32)-1:
-			(rotate2b(db->header_length)/32)-1); 
+			dbc?((db->header_length - 263)/32)-1:
+			(db->header_length/32)-1);
 
-	
-	
-	printf("Rows in file..........: \t %d\n\n", 
+
+
+	printf("Rows in file..........: \t %d\n\n",
 			rotate4b(db->records));
 }
 

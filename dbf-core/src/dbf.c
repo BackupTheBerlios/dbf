@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.15  2004/03/16 20:56:30  rollinhand
+ * Endian Swapping centralized in dbf_read_header
+ *
  * Revision 1.14  2004/02/01 12:04:54  rollinhand
  * Some cosmetics
  *
@@ -27,7 +30,7 @@
  * char flag_byte set to top of the function so that Windows cn compile dbf sources as well.
  *
  ******************************************************************************/
- 
+
  /** TODO **/
  /* Currently we do not know how to handle field subrecords in FoxPro and dBASE 4
   * backlink_exists() works only if no field subrecords are in the table definition (*.dbf)
@@ -38,12 +41,15 @@
 
 static struct DB_HEADER db_buf, *db = &db_buf;
 static struct DB_FIELD *header;
+
 static int convert = 1;
 
 int	isbigendian;
 unsigned int dbversion = 0x00;
 unsigned int verbosity = 1;
 unsigned int keep_deleted = 0;
+unsigned int sql_drop_table = 1;
+
 /* 0 = no backlink, 1 = backlink */
 unsigned int dbc = 0;
 
@@ -51,14 +57,14 @@ unsigned int dbc = 0;
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);
 }
 
 /* dbf_backlink_exists() {{{
  * checks if a backlink is at the end of the field definition, this backlink is
  * about 263 byte
  */
-static int dbf_backlink_exists(int fh, const char *file) 
+static int dbf_backlink_exists(int fh, const char *file)
 {
 	int number_of_fields;
 	long pos;
@@ -68,26 +74,26 @@ static int dbf_backlink_exists(int fh, const char *file)
 	 * proof if the Field Terminator is set, because dbf puts the backlink to
 	 * the normal header. The sign 0x0Dh is invalid in the backlink so we can
 	 * easily prove for it and verify Microsofts formula.
-	 * -- berg, 2003-12-08	
+	 * -- berg, 2003-12-08
 	 */
-	pos = lseek(fh, 0L, SEEK_CUR);
-	lseek(fh, rotate2b(db->header_length)-1, SEEK_SET);
-	
+	pos = rotate4b( lseek(fh, 0L, SEEK_CUR) );	
+	lseek(fh, db->header_length-1, SEEK_SET);
+
 	if ((read( fh, (char *)pt, 1)) == -1 ) {
 		perror(file);
 		exit(1);
 	}
-	
+
 	lseek(fh, pos, SEEK_SET);
-	
-	number_of_fields = (rotate2b(db->header_length) - 296) / 32;	
-	
+
+	number_of_fields = (db->header_length - 296) / 32;
+
 	if ( (number_of_fields != db->records) && *pt != 0x0D) {
 		fprintf(stderr, "Database backlink found!\n");
 		return 1;
-	}	
-	
-	return 0;	
+	}
+
+	return 0;
 }
 /* }}} */
 
@@ -97,25 +103,25 @@ static int dbf_backlink_exists(int fh, const char *file)
 static int
 dbf_check(int fh, const char *file)
 {
-	long filesize, pos, calc_filesize;	
-	
+	u_int32_t filesize, pos, calc_filesize;
+
 	pos = lseek(fh, 0L, SEEK_CUR);
 	filesize = lseek(fh, 0L, SEEK_END);
-	lseek(fh, pos, SEEK_SET);		
-	
-	calc_filesize = (rotate2b(db->header_length) + (db->records * db->record_length) + 1) ;
-	
+	lseek(fh, pos, SEEK_SET);
+
+	calc_filesize = (db->header_length + (db->records * db->record_length) + 1) ;
+
 	if ( calc_filesize != filesize ) {
 		return 0;
 	}
-	
+
 	return 1;
 }
 /* }}} */
 
 
 /* dbf_read_header {{{
- * reads header from file into struct 
+ * reads header from file into struct
  */
 static int
 dbf_read_header(int fh, const char *file)
@@ -125,6 +131,12 @@ dbf_read_header(int fh, const char *file)
 		exit(1);
 	}
 	dbversion = db->version;
+	
+	/* Endian Swapping */
+	db->header_length = rotate2b(db->header_length);
+	db->record_length = rotate2b(db->record_length);
+	db->records = rotate4b(db->records);
+	
 	return 1;
 }
 /* }}} */
@@ -222,7 +234,7 @@ printDBF(FILE *output, const struct DB_FIELD * header,
 /*}}} */
 
 /*
- * Added the hyphes to the id so that ids wit a single hyphe are also possible.
+ * Added the hyphes to the id so that ids with a single hyphe are also possible.
  * -- Bjoern Berg, 2003-10-06
  */
 struct options {
@@ -236,7 +248,7 @@ struct options {
 		ARG_OUTPUT	/* Method with output file */
 	} argument;
 	const char	*help, *def_behavior;
-} options[] = {	
+} options[] = {
 	{
 		"--sql",	writeSQLHeader,	writeSQLLine,	ARG_OUTPUT,
 		"{filename} -- writes the table-creating SQL code into the file",
@@ -258,7 +270,7 @@ struct options {
 		"--separator",	setCSVSep,	NULL,		ARG_OPTION,
 		"{c} -- sets the separator character for the CSV format",
 		"to use ``,''"
-	},
+	},	
 	{
 		"--view-info",	writeINFOHdr,	NULL,		ARG_NONE,
 		"write the dBASE file's headers and stats to stdout",
@@ -268,7 +280,12 @@ struct options {
 		"--noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
 		"do not run each each record through charset converters",
 		"to use the experimental converters"
-	},	
+	},
+	{
+		"--nodrop",	setNoDrop,	NULL,		ARG_BOOLEAN,
+		"disable DROP/CREATE statements in SQL export",
+		NULL
+	},
 	{
 		"--keepdel",	setKeepDel,	NULL,		ARG_NONE,
 		"converts also deleted datasets",
@@ -304,12 +321,12 @@ usage(const char *pname)
 		if (option->def_behavior == NULL) {
 			fprintf(stderr, "%c\t%s\t%s\n",
 		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
-		    	option->id, option->help);	
+		    	option->id, option->help);
 		} else {
 			fprintf(stderr, "%c\t%s\t%s\n\t\t(default is %s)\n",
 		    	option->argument == ARG_OUTPUT || option->argument == ARG_NONE ? '*' : ' ',
 		    	option->id, option->help, option->def_behavior);
-		}		
+		}
 	fputs("*-marked options are currently mutually exclusive.\n"
 	    "The last specified takes precedence.\n", stderr);
 	fputs("A single dash (``-'') as a filename specifies stdin or stdout\n", stderr);
@@ -338,23 +355,23 @@ main(int argc, char *argv[])
 	for(i=1; i < argc; i++)
 		if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"--help")==0 || strcmp(argv[i],"/?")==0)
 			usage(*argv);	/* Does not return */
-	
+
 	/* Check if someone wants only version output */
 	for(i=1; i < argc; i++) {
 		if( strcmp(argv[i],"-v")==0 || strcmp(argv[i],"--version")==0 ) {
-			banner();	
+			banner();
 			exit(1);
-		}	
-	}		
-	
+		}
+	}
+
 	/* TODO
 	 * check architecture: little-endian/big-endian XXX Should be done at
-	 * compile time! 
+	 * compile time!
 	 */
 	isbigendian = IsBigEndian();
 
-	/* fill filename with last argument 
-	 * Test if last argument is an option or a possible valid filename 
+	/* fill filename with last argument
+	 * Test if last argument is an option or a possible valid filename
 	 */
 	filename = argv[--argc];
 	if (filename[0] == '-' && filename[1] != '\0') {
@@ -365,8 +382,8 @@ main(int argc, char *argv[])
 
 	dbfhandle = dbf_open(filename);
 	dbf_read_header(dbfhandle, filename);
-	
-	/* File size reported by the operating system must match the logical file size. 
+
+	/* File size reported by the operating system must match the logical file size.
 	 * Logical file size = ( Length of header + ( Number of records * Length of each record ) )
 	 * Exception: Clipper and Visual FoxPro
 	 */
@@ -375,16 +392,16 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Maybe your DB is of type Visual FoxPro or dBASE 7.\n");
 		exit(1);
 	}
-	
+
 	/* Looks for backlinks, for more details see dbf_backlink_exists()
 	 */
-	dbc = dbf_backlink_exists(dbfhandle, filename); 
-	
-	if ( dbc ) {		
-		header_length = (rotate2b(db->header_length) - 263) / 32;		
-	} else {	
-		header_length = rotate2b(db->header_length) / 32;
-	}	
+	dbc = dbf_backlink_exists(dbfhandle, filename);
+
+	if ( dbc ) {
+		header_length = (db->header_length - 263) / 32;
+	} else {
+		header_length = db->header_length / 32;
+	}
 
 	/* Scan through arguments looking for options
 	 */
@@ -401,22 +418,22 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 		switch (option->argument) {
-		case ARG_OUTPUT:			
+		case ARG_OUTPUT:
 			if (export_filename) {
 				fprintf(stderr,
 				    "Output file name was already specified as ``%s''.\n"
 				    "Try the --help option\n",
 				    export_filename);
 				exit(1);
-			}			
+			}
 			export_filename = argv[++i];
 			/* Fail safe routine to keep sure that the original file can
-			 * never be overwritten			 
+			 * never be overwritten
 			 */
 			if ( strcmp(export_filename, filename) == 0 ) {
 				fprintf(stderr, "\nERROR: Input file same as output file\n"
 					"Please change the name of the output file or refer to the help.\n");
-				exit(1);	
+				exit(1);
 			}
 			/* FALLTHROUGH */
 		case ARG_NONE:
@@ -444,14 +461,14 @@ main(int argc, char *argv[])
 	if(!export_filename || 0 == strcmp(export_filename, "-"))
 		output = stdout;
 	else
-		output = export_open(export_filename);		
-		 if ( dbc ) {		
-			 header_length = (rotate2b(db->header_length) - 263) / 32;		
-		 } else {	
-			 header_length = rotate2b(db->header_length) / 32;
-		 }	
-		
-		record_length = rotate2b(db->record_length);
+		output = export_open(export_filename);
+		 if ( dbc ) {
+			 header_length = (db->header_length - 263) / 32;
+		 } else {
+			 header_length = db->header_length / 32;
+		 }
+
+		record_length = db->record_length;
 		getHeaderValues(dbfhandle,filename,header_length);
 
 	/*
@@ -470,34 +487,34 @@ main(int argc, char *argv[])
 		if (verbosity > 0)
 			fprintf(stderr, "Export from %s to %s\n",filename,
 			    output == stdout ? "stdout" : export_filename);
-				
+
 		/* Because we do no longer start at the offset header_length+1, we have
 		 * to check manually if the end of the database is reached. This is done in
-		 * the while loop. 
+		 * the while loop.
 		 */
-		lseek(dbfhandle, rotate2b(db->header_length), SEEK_SET);
-		
+		lseek(dbfhandle, db->header_length, SEEK_SET);
+
 		while ((i = read(dbfhandle, record, record_length)))
-		{			
+		{
 			dataset_deleted = 0;
-		
+
 			if (i == -1) {
 				perror("reading the next block");
 				exit(1);
-			}			
-			
+			}
+
 			if (record[0] == '*' ) {
 				dataset_deleted = 1;
-			}		  	
-			
-			/* Delete the flag byte in the record */	
-			s1 = record+1;	
-			s2 = s1 + 1;					
-			
+			}
+
+			/* Delete the flag byte in the record */
+			s1 = record+1;
+			s2 = s1 + 1;
+
 			do {
-				*s1++ = *s2++;				
+				*s1++ = *s2++;
 			} while (*s2);
-				
+
 			/* Look if the dataset is deleted or the end of the dBASE file was
 			 * reached without notification by read. The end of each dBASE file is
 			 * marked with a dot.
@@ -508,9 +525,9 @@ main(int argc, char *argv[])
 					cp850andASCIIconvert(record);
 				writeLine(output, header, record, header_length,
 			    	filename, export_filename);
-			} else if ( verbosity >=1 && record[0] != 0x1A) {				
-				fprintf(stderr, "The dataset at offset %i is set to 'deleted'.\n",								 
-								 lseek(dbfhandle,0L,SEEK_CUR));				
+			} else if ( verbosity >=1 && record[0] != 0x1A) {
+				fprintf(stderr, "The dataset at offset %i is set to 'deleted'.\n",
+								 lseek(dbfhandle,0L,SEEK_CUR));
 			}
 		}
 		free(record);

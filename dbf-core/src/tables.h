@@ -64,19 +64,18 @@
  * Offsets of this header are the same in all versions of dBASE
  */
 struct DB_HEADER {
-	unsigned char version; 			/* Byte: 0; dBase version */
-	unsigned char last_update[3]; 	/* Byte: 1-3; date of last update */
-    //unsigned long records; 		/* Byte: 4-7; number of records in table */
-    unsigned int records;			/* Byte: 4-7; number of records in table */
-	u_int16_t header_length;		/* Byte: 8-9; number of bytes in the header */
-	u_int16_t record_length;		/* Byte: 10-11; number of bytes in the record */
-	unsigned char reserved01[2];	/* Byte: 12-13; reserved, see specification of dBase databases */
+	unsigned char version;			/* Byte: 0; dBase version */
+	unsigned char last_update[3];			/* Byte: 1-3; date of last update */
+	unsigned int records;			/* Byte: 4-7; number of records in table */
+	u_int16_t header_length;			/* Byte: 8-9; number of bytes in the header */
+	u_int16_t record_length;			/* Byte: 10-11; number of bytes in the record */
+	unsigned char reserved01[2];		/* Byte: 12-13; reserved, see specification of dBase databases */
 	unsigned char transaction;		/* Byte: 14; Flag indicating incomplete transaction */
 	unsigned char encryption;		/* Byte: 15; Encryption Flag */
 	unsigned char reserved02[12];	/* Byte: 16-27; reserved for dBASE in a multiuser environment*/
 	unsigned char mdx;				/* Byte: 28; Production MDX file flag */
-	unsigned char language;			/* Byte: 29; Language driver ID */
-	unsigned char reserved03[2];	/* Byte: 30-31; reserved, filled with zero */
+	unsigned char language;			/* Byte: 29; Language driver ID, for Visual FoxPro */
+	unsigned char reserved03[2];		/* Byte: 30-31; reserved, filled with zero */
 };
 
 /* The field descriptor array */
@@ -91,5 +90,42 @@ struct DB_FIELD {
 	unsigned char reserved[13];		/* Byte: 18-30; reserved */
 	unsigned char mdx;				/* Byte: 31; Production MDX field flag */
 };
+
+/* Memo File Structure (.FPT) */
+/* Memo files contain one header record and any number of block structures. The header record contains  */
+/* a pointer to the next free block and the size of the block in bytes. The size is determined by the  */
+/* SET BLOCKSIZE command when the file is created. The header record starts at file position zero and  */
+/* occupies 512 bytes. The SET BLOCKSIZE TO 0 command sets the block size width to 1. */
+
+/* Following the header record are the blocks that contain a block header and the text of the memo.  */
+/* The table file contains block numbers that are used to reference the memo blocks. The position of  */
+/* the block in the memo file is determined by multiplying the block number by the block size (found  */
+/* in the memo file header record). All memo blocks start at even block boundary addresses. A memo  */
+/* block can occupy more than one consecutive block. */
+
+/* Memo Header Record */
+																					/* Byte offset	Description */
+struct DB_MEMO_HEADER {
+	unsigned int block_adress;				/* 00  03			Location of next free block [1] */
+	unsigned char reserved[2];				/* 04  05			Unused */
+	unsigned short block_size;				/* 06  07			Block size (bytes per block) [1] */
+	unsigned char reserved2[504];			/* 08  511	Unused */
+ };
+ 
+ /* [1] Integers stored with the most significant byte first. See: endian.h   */
+ 
+/* Memo Block Header and Memo Text */
+								/* Byte offset	Description */
+struct DB_MEMO_BLOCK_TOP {
+	unsigned int signature;				/* 00  03			Block signature [1]  */
+								/*		(indicates the type of data in the block) 
+								 *		0  picture (picture field type)
+								 *		1  text (memo field type) */
+	unsigned int block_length;		/* 04  07			Length [1] of memo (in bytes) */
+								/* 08 -  n	Memo text (n = length) */
+};
+ 
+/* [1] Integers stored with the most significant byte first.    */
+
 
 #endif

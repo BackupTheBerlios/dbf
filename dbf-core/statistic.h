@@ -4,9 +4,12 @@
  * Author: Bjoern Berg, September 2002	    											
  * Email: clergyman@gmx.de		    												
  * dbf Reader and Converter for dBase III, IV, 5.0	    											
- * Version 0.3																		
+ * Version 0.3.1																		
  *																					
  * History:
+ * - Version 0.3.1 - 2003-02-16
+ *   Fixing declaration of columns, has shown one line more than exists
+ *   todo: checking if this influences conversion
  * - Version 0.3 - 2003-01-25
  *   improved handling for dBASE y2k problem
  *	 improved output of table structure
@@ -51,7 +54,7 @@ void dbf_file_info (struct DB_HEADER *db)
 	printf("Length of header......: \t %d (%04xd)\n", rotate2b(db->header_length),
 	rotate2b(db->header_length));
 	printf("Record length.........: \t %d (%04xd)\n", rotate2b(db->record_length), rotate2b(db->record_length));
-	printf("Columns in file.......: \t %d \n", rotate2b(db->header_length)/32);
+	printf("Columns in file.......: \t %d \n", rotate2b(db->header_length)/32)-1;
 	printf("Rows in file..........: \t %d\n\n", rotate4b(db->records));
 }
 

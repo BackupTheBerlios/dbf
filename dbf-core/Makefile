@@ -1,5 +1,5 @@
 # Makefile for dbf
-# Makefile Version: 0.6
+# Makefile Version: 0.8
 
 include Makefile.rules
 
@@ -18,6 +18,7 @@ all:
 install:
 	@(echo "");
 	@(echo -en "Copying dbf to $(PREFIX)... ");
+	@(install -d $(PREFIX)/bin)
 	cp $(DIRS)/$(BIN) $(PREFIX)/bin
 	
 uninstall:

@@ -14,10 +14,6 @@ This programme bases on the source of Joachim Astel published
 points. At the moment binaries could be received during
 http://www.anubisnet.de for Windows and Linux.
 
-The actual version 0.5beta01 is a development version and should be not used 
-in a productive environment. For crashed and damaged data due to ignoration of
-this warning the programmer and the anubisnet group are not liable. 
-
 
 Features:
 =========
@@ -28,8 +24,7 @@ most popular spread sheets.
 
 - SQL Exporteur
 dbf supports since version 0.6 an experimental export to SQL instruction setting files,
-so called SQL statements. The current version only allows to create the table, but no
-data are filled in.
+so called SQL statements. 
 
 - Code Pages
 dBASE III files were now automatically encoded with the optimal chars and umlauts
@@ -52,6 +47,7 @@ Windows		i386
 MacOS X		PPC
 Darwin
 *BSD		i386
+AIX 4.3.3
 
 
 Database:
@@ -112,11 +108,14 @@ With the flag --ppc you can disable the architecture check, so that you can give
 a try on your Big Endian system. Maybe it works (only active in beta and development versions)
 
 
-Frequently Asked Questions:
-===========================
+Frequently Asked Questions / Help:
+==================================
 
 See the attached file FAQ or have a look at 
 http://anubisnet.sf.net/support.php for more help.
+
+Subscribe to our mailinglist for every question: 
+http://lists.sourceforge.net/lists/listinfo/dbf-general
 
 
 Contributors:

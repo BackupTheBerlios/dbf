@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.10  2004/08/27 09:42:51  steinm
+ * - use gettext to output messages
+ *
  * Revision 1.9  2004/08/27 09:30:47  steinm
  * - removed separating lines between field information
  *
@@ -58,7 +61,7 @@ static const char *get_db_version (int version) {
 			// with memo fields
 			return "FoxPro 2.0";
 		default:
-			sprintf(name, "Unknown (code 0x%.2X)", version);
+			sprintf(name, _("Unknown (code 0x%.2X)"), version);
 			return name;
 	}
 }
@@ -72,19 +75,22 @@ dbf_file_info (P_DBF *p_dbf)
 
 	version	= dbf_GetVersion(p_dbf);
 	memo = (version  & 128)==128 ? 1 : 0;
-	printf("\n-- File statistics\n");
-	printf("dBase version.........: \t %s (%s)\n",
+	printf("\n");
+	printf(_("File statistics:"));
+	printf("\n");
+	printf(_("dBase version.........:"));
+	printf(" \t %s (%s)\n",
 			dbf_GetStringVersion(p_dbf), memo?"with memo":"without memo");
-	printf("Date of last update...: \t %s\n",
-			dbf_GetDate(p_dbf));
-	printf("Number of records.....: \t %d (%08xd)\n",
-			dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
-	printf("Length of header......: \t %d (%04xd)\n",
-			dbf_HeaderSize(p_dbf));
-	printf("Record length.........: \t %d (%04xd)\n",
-			dbf_RecordLength(p_dbf));
-	printf("Columns in file.......: \t %d \n",
-			dbf_NumCols(p_dbf));
+	printf(_("Date of last update...:"));
+	printf(" \t %s\n", dbf_GetDate(p_dbf));
+	printf(_("Number of records.....:"));
+	printf(" \t %d (%08xd)\n", dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
+	printf(_("Length of header......:"));
+	printf(" \t %d (%04xd)\n", dbf_HeaderSize(p_dbf));
+	printf(_("Record length.........:"));
+	printf(" \t %d (%04xd)\n", dbf_RecordLength(p_dbf));
+	printf(_("Columns in file.......:"));
+	printf(" \t %d \n", dbf_NumCols(p_dbf));
 }
 
 /* output for field statistic */
@@ -99,7 +105,17 @@ dbf_field_stat (P_DBF *p_dbf)
 	columns = dbf_NumCols(p_dbf);
 
 	drawline(linelength, cross, (sizeof(cross)/sizeof(int)));
-	printf("| field name\t| type\t| field adress\t| length\t| field dec.\t|\n");
+	printf("| ");
+	printf(_("field name"));
+	printf("\t| ");
+	printf(_("type"));
+	printf("\t| ");
+	printf(_("field address"));
+	printf("\t| ");
+	printf(_("length"));
+	printf("\t| ");
+	printf(_("field dec."));
+	printf("\t|\n");
 	drawline(linelength, cross, sizeof(cross)/sizeof(int));
 	for (i = 0; i < columns; i++) {
 		char field_type;

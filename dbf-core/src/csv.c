@@ -12,6 +12,10 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.11  2003/11/12 07:51:02  steinm
+ * - put variable declaration at start of function because some older
+ *   gcc can handle it otherwise
+ *
  * Revision 1.10  2003/11/11 15:12:03  rollin_hand
  * solved the problem with header in writeCSVLine
  *
@@ -103,10 +107,12 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 
 	while (--header_length)
 	{
-		header++;
 		const unsigned char *begin, *end;
-		int isstring = header->field_type == 'M' || header->field_type == 'C';
-		int isfloat = header->field_type == 'F' || ( header->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
+		int isstring, isfloat;
+
+		header++;
+		isstring = header->field_type == 'M' || header->field_type == 'C';
+		isfloat = header->field_type == 'F' || ( header->field_type == 'B' && dbversion == VisualFoxPro) ? 1 : 0;
 		
 		begin = value;
 		value += header->field_length;

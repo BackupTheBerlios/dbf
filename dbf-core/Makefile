@@ -29,13 +29,14 @@ uninstall:
 clean:	
 	@(echo "");
 	@(echo -e "$(RED)Cleaning directories...$(NORMAL)");
+	@(rm -f make.log);
 	@(for i in $(DIRS); do cd $(DIRS); rm -f *.o; rm -f $(BIN); done);
 	
 src-dist:	
 	# Add sources
 	@( ls -I CVS src/*.h src/*.c | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
 	# Add build instructions and Makefiles
-	@( ls -I CVS src/Makefile src/dbf.mak Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/Makefile src/dbf.mak Makefile Makefile.rules compile.bat | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )

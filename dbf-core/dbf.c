@@ -3,9 +3,11 @@
  * Author: Bjoern Berg, June 2002	    											
  * Email: clergyman@gmx.de		    												
  * dbf Reader and Converter for dBASE files    											
- * Version 0.5beta02																	
+ * Version 0.6																	
  *																					
  * History:
+ * - Version 0.6
+ *   minor changes by ross jones, features now sql support
  * - Version 0.5
  *   all SQL functions are commented due to compiler problems
  *	 see CHANGELOG for more details	
@@ -65,8 +67,6 @@
 #define SQL_OUTPUT 1
 #define CSV_OUTPUT 2
 #define INFO_OUTPUT 3
-#define IS_STRING 1
-#define IS_NUMERIC 2
 #define DBF_VERSION 0x07
 #define DBF_MEMO3 0x80
 #define DBF_MEMO4 0x08
@@ -78,7 +78,6 @@
 #include "an_string.h"
 #include "statistic.h"
 #include "endian.h"
-/*#include "sql.h"*/
 
 #define MAX_FIELDS 50				/* maximum number of fields within a database */
 
@@ -88,6 +87,8 @@ char export[4];						/* stores the format to convert into: csv, txt */
 char *export_filename;				/* stores the filename to export to */
 int isbigendian;					/* verifies if the used system is of type Big Endian or not */
 
+/* SQL relies on some things that are defined above .. this is not ideal */
+#include "sql.h"
 
 /* get the header, dBase standard */
 /* header similar for all dBASE versions, see tables.h for more details */
@@ -187,7 +188,7 @@ void show_help(char *pname) {
 	printf("\n Options:");
     printf("\n  -h or --help \t\t shows this screen");
 	printf("\n  --csv [csv-file] \t convert dBASE File to csv (readable with spread sheets)");
-    /*printf("\n  --sql [sql-file] \t converts dBASE File to sql (tested with Postgres)");*/ 	
+    printf("\n  --sql [sql-file] \t converts dBASE File to sql (tested with Postgres)");
 	printf("\n  --view-info \t\t displays statistics about current dbf file");
 	/*printf("\n  --ppc \t\t force dbf not to check the system architecture");*/
 	printf("\n\nPlease note that the current version automatically detects\n\
@@ -207,7 +208,7 @@ int main (int argc, char *argv[])
 	ppc_override = 0;
 	
 	
-	printf("dBase Reader and Converter V. 0.5, (c) 2003 by Bjoern Berg\n");
+	printf("dBase Reader and Converter V. 0.6, (c) 2002 - 2003 by Bjoern Berg\n");
 	/*printf("Build: %s, %s\n", __DATE__, __TIME__);*/	
 		
 	if (argc < 2) {
@@ -215,10 +216,10 @@ int main (int argc, char *argv[])
 		exit(1);
 	} 
 	
-	/* check for override flags, developer versions */
-	for(i=1; i < argc; i++) {
+	/* check for override flags, developer versions - I think that is no longer needed*/
+	/*for(i=1; i < argc; i++) {
 		if(strcmp(argv[i], "--ppc")==0) ppc_override = 1;
-	} 
+	}*/ 
 		
 	/* Check if someone needs help */
 	for(i=1; i < argc; i++) {
@@ -229,17 +230,12 @@ int main (int argc, char *argv[])
 	}	
 	
 	/* check architecture: little-endian / big-endian */
-	if(ppc_override == 1) {
+	isbigendian = IsBigEndian();
+	/*if(ppc_override == 1) {
 		isbigendian = _false;
 		printf("Override: Do not check on Big Endian / Little Endian System\n");
-	} else isbigendian = IsBigEndian();	 	
+	} else isbigendian = IsBigEndian();*/	 	
 	
-	/*if(isbigendian == _true) {
-		printf("System: Big Endian\n");
-		printf("The current version does not support architectures using Big Endian coding\n");
-		printf("A B O R T I N G!\n");
-		exit(1);
-	} else printf("System: Little Endian\n");*/
 	
 	/* fill filename with last argument */
 	/* Test if last argument is an option or a possible valid filename */
@@ -250,7 +246,7 @@ int main (int argc, char *argv[])
 	} else 	filename = argv[(argc-1)]; 
 	
 	/* fill export_filename, if necessary */
-	/* -c csv export */
+	/* --csv: csv export */
 	for(i=1; i < argc; i++) {	     
 		if(strcmp(argv[i],"--csv")==0) {
 			  if((i+2) < argc) {
@@ -263,8 +259,8 @@ int main (int argc, char *argv[])
 		}
 	}	
 
-    /* sql export */
-    /*for(i=1; i < argc; i++) {            
+    /* --sql: sql export */
+    for(i=1; i < argc; i++) {            
     	if(strcmp(argv[i],"--sql")==0) {
         	if((i+2) < argc) {
             	export_filename = argv[i+1];
@@ -274,7 +270,7 @@ int main (int argc, char *argv[])
                 exit(1);
             } 
         }
-    } */      
+    }       
 
 	/* Statistic Output */
 	/* new since version 0.3.0 BETA 1 */
@@ -317,7 +313,7 @@ int main (int argc, char *argv[])
 		  handle = export_open(export_filename);
 		  switch(type) {
 		    case SQL_OUTPUT:
-			    /*writeSQLHeader(handle,header,header_length, filename, export_filename);*/
+			    writeSQLHeader(handle,header,header_length, filename, export_filename);
 		    	break;
             default:
 			    writeCSVHeader(handle, header,header_length);                           

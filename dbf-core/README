@@ -1,5 +1,5 @@
-dbf version 0.5beta01
-dBase reader and converter for dBASE databases
+dbf version 0.5
+dBASE reader and converter for dBASE databases
 Author: Bjoern Berg
 Email: clergyman@gmx.de
 
@@ -30,20 +30,30 @@ most popular spread sheets.
 dBASE III files were now automatically encoded with the optimal chars and umlauts
 for american, english and western european data sets.
 
+- Endianess-save
+Since version 0.5, dbf is usable on nearly every architecture, if it is Big Endian 
+or Little Endian. 
+
 
 Support:
 ========
 
-For these platforms and database formats I can guarantee that dbf works
+For these platforms and database formats we can guarantee that dbf works
 
 Platform:
 ---------
-Linux 		i386	AXP
+Linux 		i386	AXP		PPC
 Windows		i386
+MacOS X		PPC
+Darwin
+*BSD		i386
+
 
 Database:
 ---------
 dBASE III
+dBASE IV
+dBASE 5.0
 
 
 Compiling and Installation:
@@ -84,7 +94,7 @@ flag -cs is outdated and no longer in use.
 
 - Override System Check
 With the flag --ppc you can disable the architecture check, so that you can give dbf
-a try on your Big Endian system. Maybe it works (only for developers!!!)
+a try on your Big Endian system. Maybe it works (only active in beta and development versions)
 
 
 Frequently Asked Questions:
@@ -106,7 +116,7 @@ See also FAQ for more information on dbf, and how to help on this project.
 Copyright:
 ==========
 
-(c) 2002, Björn Berg
+(c) 2002 - 2003, Bjoern Berg
 
 Permission to use, copy, modify, distribute and sell this software
 and its documentation for any purpose is hereby granted without fee,

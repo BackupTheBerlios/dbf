@@ -17,7 +17,7 @@ div#container {
 div#main {    
   background-color:#FFF;
   width:480px;
-  float:left; 
+  float:left;
   padding:5px;
 }
 
@@ -25,7 +25,7 @@ div#main {
 div#block {    
   background-color:#EEE;  
   width:146px;
-  float:left;      
+  float:left; 
 }
 
 #block ul {

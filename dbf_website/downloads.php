@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- $Id: index.html,v 1.2 2005/03/28 17:35:20 rollinhand Exp $ -->
+<!-- $Id: downloads.php,v 1.1 2005/03/28 17:35:20 rollinhand Exp $ -->
 <head>
   <title>dbf - Your dBASE Converter</title>
   <meta name="GENERATOR" content="Quanta Plus">
@@ -11,19 +11,14 @@
 <body>
 
 <div id="container">
-  <div id="main">
-    <p id="announcement">
-      <b>Latest version:</b>
-         libdbf 0.0.1; dbf 0.9.0
-    </p>
-    <img style="padding-bottom:10px" src="pics/dbf_intro.jpg" alt="dbf intro" width="480" height="225" align="bottom" border="0" hspace="5" vspace="0">  
-    <p>dbf is an easy-to-use command line tool to show and convert the content of 
-       dBASE III, IV, and 5.0 files. It reads dBASE databases and prints the content to 
-       the screen or converts it to comma-separated (*.csv) files which can be opened in
-       Excel, StarOffice, and most other spread sheets. It can also be used to show some
-       statistics about the content.
-    </p>
-    <p>[<a href="intro.html">Read more</a>]</p>    
+  <div id="main">    
+	<h1>Downloads</h1>
+	<p>Soon on this site you will find current downloads of dbf and
+		the latest CVS snapshot.</p>
+    <p>For the moment please check out the following page to get
+       the latest version of libdbf and dbf:</p>
+	<a href="http://developer.berlios.de/project/showfiles.php?group_id=1219" target="blank">
+	http://developer.berlios.de/project/showfiles.php?group_id=1219</a>
   </div>
   <div id="block">
   <h4>End Users</h4>

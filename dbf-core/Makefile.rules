@@ -2,6 +2,9 @@
 # Version 0.8
 # History:
 # $Log: Makefile.rules,v $
+# Revision 1.5  2003/11/19 06:59:57  steinm
+# - CHANGELOG is now ChangeLog
+#
 # Revision 1.4  2003/11/13 11:16:26  rollin_hand
 # changed  to 'gcc' instead of full path
 #
@@ -23,7 +26,7 @@ PREFIX = /usr/local
 OBJ = an_string.o codepages.o congraph.o csv.o dbf.o endian.o iodbf.o sql.o statistic.o 
 HDR = $(OBJ:%.o=%.h) tables.h
 SRC = $(OBJ:%.o=%.c)
-DOC = BUGS CHANGELOG README CREDITS MANIFEST INSTALL FAQ
+DOC = BUGS ChangeLog README CREDITS MANIFEST INSTALL FAQ
 
 
 # Layout

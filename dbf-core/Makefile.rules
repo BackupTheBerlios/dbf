@@ -1,5 +1,5 @@
 # Makefile.rules for dbf
-# Version 0.7
+# Version 0.8
 
 # Compiler flags
 CC = /usr/bin/gcc
@@ -9,12 +9,12 @@ CFLAGS = -Wall
 LOG = make.log
 DIRS = src
 BIN = dbf
-VERSION = 0.7
-PREFIX = /usr/local/bin
-
+VERSION = 0.8
+PREFIX = /usr/local
 
 # Compiler settings - do not change
-OBJ = an_string.o codepages.o congraph.o csv.o dbf.o dbfversion.o endian.o iodbf.o sql.o statistic.o 
+# erased dbfversion.o
+OBJ = an_string.o codepages.o congraph.o csv.o dbf.o endian.o iodbf.o sql.o statistic.o 
 HDR = $(OBJ:%.o=%.h) tables.h
 SRC = $(OBJ:%.o=%.c)
 DOC = BUGS CHANGELOG README CREDITS MANIFEST INSTALL FAQ

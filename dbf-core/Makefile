@@ -12,18 +12,18 @@ all:
 	@(echo "Check make.log in the main-directory of dbf if dbf compiled fine.");
 	@(echo "");
 	@(echo -e "Now execute 'make install'")
-	@(echo -e "Binary will be installed to $(PREFIX)")
+	@(echo -e "Binary will be installed to $(PREFIX)/bin")
 	@(echo "");
 	
 install:
 	@(echo "");
 	@(echo -en "Copying dbf to $(PREFIX)... ");
-	cp $(DIRS)/$(BIN) $(PREFIX)
+	cp $(DIRS)/$(BIN) $(PREFIX)/bin
 	
 uninstall:
 	@(echo "");
 	@(echo -e "$(RED)Uninstalling dbf...$(NORMAL)");
-	rm $(PREFIX)/$(BIN)		
+	rm $(PREFIX)/bin/$(BIN)		
 	
 clean:	
 	@(echo "");
@@ -32,10 +32,10 @@ clean:
 	
 src-dist:	
 	# Add sources
-	@( ls src/*.h src/*.c | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
+	@( ls -I CVS src/*.h src/*.c | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
 	# Add build instructions and Makefiles
-	@( ls src/Makefile src/dbf.mak Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
-	@( ls $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/Makefile src/dbf.mak Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )
 	@( cd ..; tar cfz $(BIN)-$(VERSION)/$(BIN)-$(VERSION).src.tar.gz `cat $(BIN)-$(VERSION)/MANIFEST` )
@@ -48,8 +48,8 @@ elf-dist:
 	@(for i in $(DIRS); do make -C $$i > $(LOG) 2>&1; done);		
 	@(echo -e "$(GREEN)   done$(NORMAL)");	
 	# Add build instructions and binary	
-	@( ls src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
-	@( ls $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
+	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )
 	@( cd ..; zip $(BIN)-$(VERSION)/$(BIN)-$(VERSION).bin.x86.zip `cat $(BIN)-$(VERSION)/MANIFEST` )
@@ -63,8 +63,8 @@ ppc-dist:
 	@(for i in $(DIRS); do make -C $$i > $(LOG) 2>&1; done);		
 	@(echo -e "$(GREEN)   done$(NORMAL)");	
 	# Add build instructions and binary	
-	@( ls src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
-	@( ls $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
+	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )
 	@( cd ..; zip $(BIN)-$(VERSION)/$(BIN)-$(VERSION).bin.PPC.zip `cat $(BIN)-$(VERSION)/MANIFEST` )
@@ -78,8 +78,8 @@ axp-dist:
 	@(for i in $(DIRS); do make -C $$i > $(LOG) 2>&1; done);		
 	@(echo -e "$(GREEN)   done$(NORMAL)");	
 	# Add build instructions and binary	
-	@( ls src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
-	@( ls $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
+	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )
 	@( cd ..; zip $(BIN)-$(VERSION)/$(BIN)-$(VERSION).bin.AXP.zip `cat $(BIN)-$(VERSION)/MANIFEST` )
@@ -93,8 +93,8 @@ solaris-dist:
 	@(for i in $(DIRS); do make -C $$i > $(LOG) 2>&1; done);		
 	@(echo -e "$(GREEN)   done$(NORMAL)");	
 	# Add build instructions and binary	
-	@( ls src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
-	@( ls $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
+	@( ls -I CVS src/$(BIN) src/Makefile Makefile Makefile.rules | sed s:^:$(BIN)-$(VERSION)/: > MANIFEST )
+	@( ls -I CVS $(DOC) | sed s:^:$(BIN)-$(VERSION)/: >> MANIFEST )
 	# Create virtual packet building environment
 	@( cd ..; ln -s $(PWD) $(BIN)-$(VERSION) )
 	@( cd ..; zip $(BIN)-$(VERSION)/$(BIN)-$(VERSION).bin.solaris.zip `cat $(BIN)-$(VERSION)/MANIFEST` )

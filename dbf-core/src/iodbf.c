@@ -6,6 +6,9 @@
  *
  * History:
  * $Log: iodbf.c,v $
+ * Revision 1.4  2004/01/03 15:41:43  rollinhand
+ * added memo_open() to add support for memo_files in dbf
+ *
  * Revision 1.3  2003/11/13 11:22:55  rollin_hand
  * - dBASE files should be opened in binary mode because in text mode CR/LF translation occurs, leads to data corruption
  *
@@ -33,6 +36,27 @@ dbf_open(const char *file)
 	}
 
 	return dbfhandle;
+}
+
+/* * * * MEMO_OPEN 
+ * open the the current .fpt file
+ * memohandle is defined as a global variable 
+ * To close the memo file we can call dbf_close
+ */
+int memo_open (const char *file)
+{
+	int memohandle;
+	
+	if (file[0] == '-' && file[1] == '\0')
+		return fileno(stdin);
+	
+ 	if ((memohandle = open(file, O_RDONLY|O_BINARY)) == -1) {
+ 		fprintf(stderr, "Can not open file %s.\n"
+		    "try --help or -h for usage\n", file);
+		exit(1);
+ 	}
+	
+ 	return memohandle;
 }
 
 /* * * * DBF_CLOSE

@@ -37,6 +37,7 @@
 #endif
 
 int dbf_open (const char *file);
+int memo_open (const char *file);
 int dbf_close (int fh, const char *file);
 FILE * export_open (const char *file);
 int export_close (FILE *fp, const char *file);

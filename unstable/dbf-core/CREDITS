@@ -44,5 +44,6 @@ I also want to thank the people who have taken the time to test dbf under severa
 circumstances and who stand my never-ending questions and requests for testing 
 newer versions:
 
-* Uwe Steinmann, uwe@steinmann.cx
-* Kai Witte, kai@witte-offline.de
+* Uwe Steinmann, uwe@steinmann.cx: PPC
+* Kai Witte, kai@witte-offline.de: PPC
+* John McVeagh: AIX

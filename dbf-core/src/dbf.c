@@ -8,6 +8,10 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.24  2004/08/30 11:13:49  steinm
+ * - tablename is created from export file name by removing the path
+ *   and the file extension.
+ *
  * Revision 1.23  2004/08/30 10:25:50  steinm
  * - handle new options --empty-str-is-null and --usecopy
  *
@@ -534,8 +538,13 @@ main(int argc, char *argv[])
 		output = export_open(export_filename);
 
 	/* If the tablename was not set explicitly, use the export file name */
-	if(!tablename && export_filename && 0 != strcmp(export_filename, "-"))
-		tablename = strdup(export_filename);
+	if(!tablename && export_filename && 0 != strcmp(export_filename, "-")) {
+		char *ptr;
+		tablename = basename(export_filename);
+		ptr = strrchr(tablename, '.');
+		*ptr = '\0';
+	}
+		
 
 	if(!tablename && writeHeader == writeSQLHeader) {
 		fprintf(stderr, _("SQL mode requires a tablename to be set, if the output goes to stdout."));

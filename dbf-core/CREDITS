@@ -1,6 +1,6 @@
 The people who made this tool happen:
 
-Main Author(s):
+Main Authors:
 ===============
 
 Björn Berg, clergyman@gmx.de: 
@@ -35,3 +35,14 @@ dbf-0.4. This avoids many warnings about "case statement out of range"
 
 * Dr. Georg Roesler:
 SQL Export, bugfixes and code optimization
+
+
+Testers:
+========
+
+I also want to thank the people who have taken the time to test dbf under several
+circumstances and who stand my never-ending questions and requests for testing 
+newer versions:
+
+* Uwe Steinmann, uwe@steinmann.cx
+* Kai Witte, kai@witte-offline.de

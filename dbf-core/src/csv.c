@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.13  2003/12/04 12:10:48  steinm
+ * - skip 0 at end of field value
+ *
  * Revision 1.12  2003/11/12 08:50:32  steinm
  * - simplyfied the masking of the separator char within a value of a field
  * - fixed the masking. The separator char is masked with another separator char
@@ -122,6 +125,10 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		begin = value;
 		value += header->field_length;
 		end = value - 1;
+
+		/* Remove NULL chars at end of field */
+		while(end != begin && *end == '\0')
+			end--;
 
 		/*
 		 * addded to keep to CSV standard:

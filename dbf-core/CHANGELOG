@@ -5,6 +5,7 @@ email address [anubisnet group]
 File sorted in order of date of release
 
 0.9.0		STABLE
+- using '-' as a filename means stdout
 - fixed csv output. separator char within a field value are now treated
   propperly (Uwe)
 - Do not put the separator char after the last field in csv output (Uwe)

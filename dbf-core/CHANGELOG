@@ -14,7 +14,12 @@ File sorted in order of date of release
   't' as separator.
 - Fix for date strings in SQL: According the PostgreSQL manual, SQL (ANSI) requires 
   date strings to be quoted, ie. '20031029' 
-  send in by Tommi Rintala, t2r@wasalab.com     			
+  send in by Tommi Rintala, t2r@wasalab.com 
+- Can differentiate between dBASE, FoxPro, FoxBase and Clipper
+- --view-info reports the database type and version number
+- supports datatypes int, float, double and logical in SQL and CSV
+- introduced cast operations for CSV and SQL export
+- differentiates between deleted and existent data sets      			
 
 
 0.7		STABLE

@@ -57,7 +57,7 @@ manpage.1: manpage.sgml
   <refnamediv>
     <refname>&dhpackage;</refname>
 
-    <refpurpose>Read dBASE files and write csv or sql output</refpurpose>
+    <refpurpose>Read dBASE files and write csv, sql, or dbase output</refpurpose>
   </refnamediv>
   <refsynopsisdiv>
     <cmdsynopsis>
@@ -68,6 +68,7 @@ manpage.1: manpage.sgml
       <arg><option>--view-info </option></arg>
       <arg><option>--sql <replaceable>FILE</replaceable></option></arg>
       <arg><option>--csv <replaceable>FILE</replaceable></option></arg>
+      <arg><option>--dbf <replaceable>FILE</replaceable></option></arg>
       <arg><option>--trim <replaceable>l|r|b</replaceable></option></arg>
       <arg><option>--debug <replaceable>0-9</replaceable></option></arg>
       <arg><option>--keepdel </option></arg>
@@ -76,6 +77,8 @@ manpage.1: manpage.sgml
       <arg><option>--empty-str-is-null </option></arg>
       <arg><option>--separator CHAR</option></arg>
       <arg><option>--tablename NAME</option></arg>
+      <arg><option>--start-record NUM</option></arg>
+      <arg><option>--num-records NUM</option></arg>
       <arg><option><replaceable>FILE</replaceable></option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -93,8 +96,9 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>OPTIONS</title>
 
-    <para>This program follows the usual &gnu; command line syntax,
-      with long options starting with two dashes (`-').  A summary of
+    <para>This program follows a &gnu;-like command line syntax,
+      with long options starting with two dashes (`-'), but without the
+			equal sign (`=') before the option value.  A summary of
       options is included below.  For a complete description, see the
       <application>Info</application> files.</para>
 
@@ -170,6 +174,15 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--dbf FILENAME</option>
+        </term>
+        <listitem>
+          <para>Converts the dBASE file into another dBASE file.
+						This option is most useful for extracting certain records from
+						the input file.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--separator CHAR</option>
         </term>
         <listitem>
@@ -183,8 +196,27 @@ manpage.1: manpage.sgml
         <listitem>
           <para>Explixitly set the name of the table in the sql output. If
 					  tablename is not set the name of the export file will be
-						used. It the export file is stdout the table name must be set,
+						used. If the export file is stdout the table name must be set,
 						otherwise the program will quit with an error.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--start-record NUM</option>
+        </term>
+        <listitem>
+          <para>The first record to ouput is record <option>NUM</option>.
+					  The first record in a database has number 1. If
+						<option>NUM</option> is negative it will indicate the number
+						of the record counting from from end of the database. -1 is the
+						last record.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--num-records NUM</option>
+        </term>
+        <listitem>
+          <para>Output only <option>NUM</option> records. <option>NUM</option>
+					  must be greater than zero.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -211,9 +243,9 @@ manpage.1: manpage.sgml
           <para>Prevent the output of the sql statement to create a table
 					  with the structure of the dBASE file. This is most usefull if
 						the table already exists and should only be populated with
-						further records. This option should be used together
-						with <option>--nodrop</option>. The option has only affect in
-						sql output mode.</para>
+						more records. This option should be used together with
+						<option>--nodrop</option> to make sense. The option has only
+						affect in sql output mode.</para>
         </listitem>
       </varlistentry>
       <varlistentry>

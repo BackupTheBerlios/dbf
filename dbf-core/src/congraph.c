@@ -13,19 +13,19 @@
 #include "congraph.h"
 
 /* draws line with crosses for table */
- 
+
 void drawline (int length, int *cross, int numberofcrosses) {
-  int count, i; 
-  char sign = '-';  
-  
+  int count, i;
+  char sign = '-';
+
   count = 1;
   while(count <= length) {
 	for(i=0; i < numberofcrosses; i++) {
-	    if(cross[i] == count) sign = '+';								
+	    if(cross[i] == count) sign = '+';
 	}
-	printf("%c",sign);	
+	printf("%c",sign);
 	sign = '-';
-	count++;	
+	count++;
   }
-  printf("\n");		
-}	
+  printf("\n");
+}

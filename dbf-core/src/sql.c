@@ -1,136 +1,196 @@
 /***********************************************************************************
-* sql.h
-* conversion of dbf files to sql
-* only tested with postgres							
-* Author: Dr Georg Roesler, February 2003
-* Email: groesle@gwdg.de
-* 
-* Implemented for: dbf Reader and Converter for dBase 3
-* Version 0.5
-*
-* History:
-*	2003-02-24	jones	some minor changes 	
-* - Version 0.1 - February 2003
-*	 first implementation in dbf.c			
-************************************************************************************/
+ * sql.c
+ ***********************************************************************************
+ * conversion of dbf files to sql
+ * 
+ * Version 0.2, 2003-09-08
+ * Author: Dr Georg Roesler, groesle@gwdg.de
+ *
+ * History:
+ * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
+ *								Support for MySQL and PostGres
+ * 2003-02-24	jones			some minor changes
+ * - Version 0.1 - February 2003
+ *	 first implementation in dbf.c
+ ************************************************************************************/
 
 #include "sql.h"
 
-/*#ifndef _SQL_EXPORT_ 
-#define _SQL_EXPORT_
+static size_t	tablelen;
+/* Whether to trim SQL strings from either side: */
+static int	trimright = 0;
+static int	trimleft = 0;
 
-static int field_type[MAX_FIELDS];*/
+int setSQLTrim(FILE *fp, const struct DB_FIELD * header,
+    int header_length,
+    const char *filename, const char *mode)
+{
+	if (mode[1] != '\0')
+		goto invalid;
+	switch (mode[0]) {
+		case 'R':
+		case 'r':
+			trimright = 1;
+			return 0;
+		case 'L':
+		case 'l':
+			trimleft = 1;
+			return 0;
+		case 'B':
+		case 'b':
+			trimleft = trimright = 1;
+			return 0;
+		invalid:
+		default:
+			fprintf(stderr, "Invalid trim mode ``%s''. "
+			    "Expecting ``r'', ``l'', or ``b'' for both",
+			    mode);
+			return 1;
+	}
+}
 
 /* writeSQLHeader */
 /* creates the SQL Header with the information provided by DB_FIELD */
-int writeSQLHeader (int handle,struct DB_FIELD *header[], struct DB_FIELD *dbf, int header_length,char *filename,char *export_filename)
+int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
+    int header_length,
+    const char *filename, const char *export_filename)
 {
-	int unsigned i,l1,l2;
-	char *q;
-	char buffer[65536], table[32],lg[12];	
+	int unsigned l1,l2;
+	const struct DB_FIELD *dbf;
 
-	strncpy(table,export_filename,strlen(export_filename)-4);
-	memset(buffer, 0, 65535);
-	q = buffer;
-	strcat(q,"-- ");	
-	strcat(q,export_filename);	
-	strcat(q," -- \n--\n-- SQL code with the contents of dbf file ");
-	strcat(q,filename);
-	strcat(q,"\n\ndrop table ");
-	strcat(q,table);
-	strcat(q,";\n\nCREATE TABLE ");
-	strcat(q,table);
-	strcat(q,"(\n");
- 	for(i=1; i < (unsigned int)header_length; i++) {
-		dbf = header[i];
-		strcat(q,dbf->field_name);
-		strcat(q,"\t");
+	tablelen = strlen(export_filename) - 4; /* Also used by the line-method */
+
+	fprintf(fp, "-- %s -- \n--\n"
+	    "-- SQL code with the contents of dbf file %s\n\n"
+	    "\ndrop table %.*s;\n"
+	    "\nCREATE TABLE %.*s(\n",
+	    export_filename, filename,
+	    tablelen, export_filename,
+	    tablelen, export_filename);
+	for (dbf = header + 1; --header_length; dbf++) {
+		fprintf(fp, "%s\t", dbf->field_name);
 		switch(dbf->field_type) {
 			case 'C':
-				strcat(q,"character varying(");
-				sprintf(lg,"%d",dbf->field_length);
-				strcat(q,lg);
-				strcat(q,")");
-				field_type[i] = IS_STRING;
+				/*
+				 * SQL 2 requests "character varying" at this point,
+				 * but oracle, informix, dab2, MySQL and PGSQL
+				 * support also "varchar". To be compatible to most
+				 * SQL databases we should use varchar for the moment.
+				 * - berg, 2003-09-08
+				 */
+				fprintf(fp, "varchar(%d)",
+				    dbf->field_type == 'M' ? 10 :
+					dbf->field_length);
+			break;
+			case 'M':
+				/*
+				 * M stands for memo fields which are currently not
+				 * supported by dbf.
+				 * - berg, 2003-09-08
+				 */
+				fprintf(stderr, "Invalid mode. "
+			    "dbf cannot convert this dBASE file. Memo fields are not supported.");
+				return 1;
 			break;
 			case 'N':
 				l1 = dbf->field_length;
 				l2 = dbf->field_decimals;
 				if((l1 < 10) && (l2 == 0))
-					strcat(q, "int");
+					fputs("int", fp);
 				else
-					sprintf(lg,"numeric(%d, %d)",l1,l2);
-					strcat(q, lg);
-				field_type[i] = IS_NUMERIC;
+					fprintf(fp, "numeric(%d, %d)",
+					    l1, l2);
 			break;
-			case 'M':
-				strcat(q, "character varying(10)");
-				field_type[i] = IS_STRING;
-			break;
+			case 'D':
+				fputs("date", fp);
+				break;
 			default:
-			break;
-		} 								
-		if(i < header_length - 1)
-			strcat(q,",");
-		strcat(q,"\n");
+				fprintf(fp, "/* unsupported type ``%c'' */",
+				    dbf->field_type);
+		}
+		if (header_length != 1)
+			fputc(',', fp);
+		fputs("\n", fp);
 	}
-	strcat(q,");\n");
-printf("Writing %s\n", buffer);
- 	if((write(handle, buffer, strlen(buffer))) == -1) {
-		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
-	}
+	fputs(");\n", fp);
 
 	return 0;
 }
 
 /* writeSQLLine */
 /* fills the SQL table */
-int writeSQLLine (int handle,struct DB_FIELD *header[], struct DB_FIELD *dbf,char *value, int header_length,char *filename, char *export_filename) {
-	char *p, *q;
-	int i, x;
-	char buffer[65536];
-	char NewString[65536];
-	char table[32];	
-	
-	strncpy(table,export_filename,strlen(export_filename)-4);
+int
+writeSQLLine (FILE *fp, const struct DB_FIELD * header,
+    const unsigned char *value, int header_length,
+    const char *filename, const char *export_filename)
+{
+	const struct DB_FIELD *dbf;
 
-	p = value;
+	fprintf(fp, "INSERT INTO %.*s VALUES(\n",
+	    tablelen, export_filename);
 
-	memset(buffer, 0, 65535);
-	q = buffer;
-	strcat(q,"INSERT INTO ");
-	strcat(q,table);
-	strcat(q," VALUES(\n");
-	if((write(handle, buffer, strlen(buffer))) == -1) {
-		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
-	}
-	for (i=1; i < (unsigned int)header_length; i++)
-	{
-		memset(buffer, 0, 65535);
-		memset(NewString, 0, 65535);
-		dbf = header[i];
-		q = buffer;
-		x = dbf->field_length;
-		if(field_type[i] == IS_STRING)
-			*q++ = '\'';
-		while(x--){
-			*q++ = *p++;
+	for (dbf = header + 1; --header_length; dbf++) {
+		const unsigned char *end, *begin;
+		int isstring = dbf->field_type == 'M' || dbf->field_type == 'C';
+
+		/*
+		 * A string is only trimmed if trimright and/or trimleft is set
+		 * Other datatypes are always "trimmed" to determine, if they
+		 * are empty, in which case they are printed out as NULL -- to
+		 * keep the SQL correctness.	-mi	Aug, 2003
+		 */
+		begin = value;
+		value += dbf->field_length; /* The next field */
+		end = value;
+
+		if (isstring) {
+			putc('\'', fp);
+			/*
+			 * Non-string data-fields are right justified
+			 * and don't need right-trimming
+			 */
+			if (trimright) {
+				while (--end != begin && *end == ' ')
+					/* Nothing */;
+					if (end == begin) { 
+						goto endstring;	
+					}
+				end++;
+			}			
 		}
-		trim_spaces(NewString, buffer);
-		if((field_type[i] == IS_NUMERIC) && (strlen(NewString) == 0))
-			strcat(NewString,"0");
-		if(field_type[i] == IS_STRING)
-			strcat(NewString,"\'");
-		if(i < header_length - 1)
-			strcat(NewString,",");
- 		if((write(handle, NewString, strlen(NewString))) == -1) {
-			printf("Cannot write data to SQL File - Aborting!\n");
-			exit(1);
+
+		if (trimleft || !isstring) {
+			while (begin != end && *begin == ' ')
+				begin++;
 		}
-	}
-	sprintf(buffer,");\n");
-	if((write(handle, buffer, strlen(buffer))) == -1) {
-		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
-	}
-	return 0;				
+
+		if (begin == end) {
+			if (isstring) {				
+				goto endstring;
+			}
+				
+			fputs("NULL", fp);
+			goto endfield;
+
+		}
+
+		do	/* Output the non-empty string:*/
+			putc(*begin++, fp);
+		while (begin != end);
+
+		if (isstring)
+		endstring:			
+			putc('\'', fp);		
+
+		endfield:			
+			if (header_length != 1) {
+			/* Not the last field */												
+				putc(',', fp);
+			} 
+		
+	}	
+	/* Terminate INSERT INTO with ) and ; */ 
+	fputs(");\n", fp);
+
+	return 0;
 }

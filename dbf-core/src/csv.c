@@ -1,77 +1,95 @@
 /***********************************************************************************
  * csv.c
- + Implementation				    														
- * Author: Bjoern Berg, March 2003	    											
- * Email: clergyman@gmx.de		    												
- * dbf Reader and Converter for dBASE files    											
- * Version 0.1																	
+ ***********************************************************************************
+ * dbf Reader and Converter for dBASE files
+ * Implementation
+ *
+ * Author: Bjoern Berg, clergyman@gmx.de
+ * Version 0.2, September 2003
+ *
  ***********************************************************************************
  * This includes enable dbf to write CSV files
- ***********************************************************************************				
+ ***********************************************************************************
  * History:
- * 2003-03-17	berg	first implementation
- *						copied CSV-specific functions to separate file
+ * 2003-09-08	teterin, berg	complete rewrite of functions
+ *								code cleanup
+ * 2003-03-17	berg			first implementation
+ *								copied CSV-specific functions to separate file
  ***********************************************************************************/
 
 #include "csv.h"
 
+static char CSVSeparator = ',';
+
+/* allows to change the separator used for CSV output */
+int
+setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
+    int header_length, const char *in /* __unused */, const char *separator)
+{
+	if (separator[1]) {
+		fprintf(stderr, "Separator ``%s'' is too long -- must be a single character\n",
+		    separator);
+		return 1;
+	}
+	CSVSeparator = separator[0];
+	return 0;
+}
+
 /* writeCSVHeader */
 /* creates the CSV Header with the information provided by DB_FIELD */
-int writeCSVHeader (int fh, struct DB_FIELD *header[], struct DB_FIELD *dbf, int header_length)
+int
+writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
+    int header_length,
+    const char *in /* __unused */, const char *out /* __unused */)
 {
-	int i;
-	char *q;
-	char buffer[65536];	
-	
-	for(i=1; i < header_length; i++) {
-		memset(buffer, 0, 65535);
-		dbf = header[i];			
-		strcpy(buffer,dbf->field_name);									
-		q = buffer+strlen(buffer);
-		*q++ = ';';
-		*q = '\0';
-		if((write(fh, buffer, strlen(buffer))) == -1)
-		{
-			printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
-		}
-	}
-	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
-		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
-	}
-	
-	return 0;	
+	while (--header_length)
+		fprintf(fp, "%s%c", (++header)->field_name, CSVSeparator);
+	fputs("\n", fp);
+
+	return 0;
 }
 
 /* writeCSVLine */
 /* creates a line in the CSV document for each data set */
-int writeCSVLine (int fh, char *value, struct DB_FIELD *header[], struct DB_FIELD *dbf, int header_length) {
-	char *p, *q;
-	int i, x;
-	char buffer[65536];
-	char NewString[65536];
-	
-	p = value;
-	
-	for (i=1; i < header_length; i++)
+int
+writeCSVLine(FILE *fp, const struct DB_FIELD * header,
+    const unsigned char *value, int header_length,
+    const char *in /* unused */, const char *out /* unused */)
+{
+
+	while (--header_length)
 	{
-		memset(buffer, 0, 65535);
-		memset(NewString, 0, 65535);
-		dbf = header[i];													    
-		q = buffer;		
-		x = dbf->field_length;
-		while(x--)
-			*q++ = *p++;
-		*q++ = ';';				
-				
-		trim_spaces(NewString, buffer);																
-													
-		if((write(fh, NewString, strlen(NewString))) == -1) {
-			printf("Cannot write data to CSV File - Aborting!\n");
-			exit(1);
+		const unsigned char *begin, *end;
+		int isstring = (header+1)->field_type == 'M' || (header+1)->field_type == 'C';
+		
+		begin = value;
+		value += (++header)->field_length;
+		end = value - 1;
+
+		/*
+		 * addded to keep to CSV standard:
+		 * Text fields must be enclosed by quotation marks
+		 * - berg, 2003-09-08
+		 */
+		if (isstring)
+			putc('\"', fp);
+		
+		while (*begin == ' ' && begin != end)
+			begin++;
+		if (*begin != ' ') {
+			while (*end == ' ')
+				end--;
+			do {
+				putc(*begin, fp);
+			} while (begin++ != end);
 		}
+
+		if (isstring)
+			putc('\"', fp);
+
+		putc(CSVSeparator, fp);
 	}
-	if((write(fh, "\n", NEWLINE_LENGTH)) == -1) {
-		printf("Cannot write data to CSV File - Aborting!\n"); exit(1);
-	}
-	return 0;				
+	fputs("\n", fp);
+
+	return 0;
 }

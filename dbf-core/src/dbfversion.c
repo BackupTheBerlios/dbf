@@ -23,9 +23,9 @@
 
 int dbfexamine(unsigned char byte, int *version, int *memo) {
 	// extract version
-	*version = ((int)byte & 7);		
+	*version = ((int)byte & 7);
 	// detect if memofile is used
-	*memo = ((int)byte & 128)==128 ? 1 : 0; 
-		
+	*memo = ((int)byte & 128)==128 ? 1 : 0;
+
 	return 1;
 }

@@ -1,7 +1,12 @@
+##############################################################
 # Makefile.rules for dbf
-# Version 0.8
+# Version 0.9
+#
 # History:
 # $Log: Makefile.rules,v $
+# Revision 1.7  2003/12/16 19:15:08  rollinhand
+# Adopted to Version 0.9pre
+#
 # Revision 1.6  2003/11/20 12:56:39  rollin_hand
 # *** empty log message ***
 #
@@ -11,7 +16,7 @@
 # Revision 1.4  2003/11/13 11:16:26  rollin_hand
 # changed  to 'gcc' instead of full path
 #
-#
+##############################################################
 
 # Compiler flags
 CC = gcc
@@ -21,7 +26,7 @@ CFLAGS = -Wall
 LOG = make.log
 DIRS = src
 BIN = dbf
-VERSION = 0.8.1
+VERSION = 0.9pre
 PREFIX = /usr/local
 
 # Compiler settings - do not change

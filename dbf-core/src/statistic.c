@@ -1,4 +1,4 @@
-/***********************************************************************************
+/*****************************************************************************
  * statistic.c
  * inherits the statistic functions for dBASE files
  * Author: Bjoern Berg, September 2002
@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.9  2004/08/27 09:30:47  steinm
+ * - removed separating lines between field information
+ *
  * Revision 1.8  2004/08/27 09:18:10  steinm
  * - Output length of header and record
  *
@@ -22,7 +25,7 @@
  *
  * 2003-11-05	berg	get_db_version() and verbosity checks for header values in
  *						dbf_file_info
- ************************************************************************************/
+ ****************************************************************************/
 
 #include "dbf.h"
 #include "statistic.h"
@@ -110,6 +113,6 @@ dbf_field_stat (P_DBF *p_dbf)
 
 		printf("|%13.11s\t| %3c\t| %8x\t| %3d\t\t| %3d\t\t|\n",
 			   field_name, field_type, field_address, field_length, field_decimals);
-		drawline(linelength, cross, sizeof(cross)/sizeof(int));
 	}
+	drawline(linelength, cross, sizeof(cross)/sizeof(int));
 }

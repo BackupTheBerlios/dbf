@@ -1,14 +1,14 @@
 /***********************************************************************************
- * iodbf.h		
- * inherits the standard I/O file commands	    														
- * Author: Bjoern Berg, September 2002	    											
- * Email: clergyman@gmx.de		    												
- * dbf Reader and Converter for dBase 3	    											
- * Version 0.1																		
- *																					
- * History:																														
- * - Version 0.1 - September 2002														
- *	 first implementation			
+ * iodbf.h
+ * inherits the standard I/O file commands
+ * Author: Bjoern Berg, September 2002
+ * Email: clergyman@gmx.de
+ * dbf Reader and Converter for dBase 3
+ * Version 0.1
+ *
+ * History:
+ * - Version 0.1 - September 2002
+ *	 first implementation
  ************************************************************************************/
 
 #include <stdio.h>
@@ -53,25 +53,25 @@ int dbf_close (int fh, char *file)
 	return 1;
 }
 
-/* * * * CSV_OPEN 
- * open the csv file for writing */
-int csv_open (char *file)
+/* * * * EXPORT_OPEN 
+ * open the export file for writing */
+int export_open (char *file)
 {
-	int csvhandle;
-	if((csvhandle = open(file, O_RDWR|O_CREAT,0777|O_TRUNC)) == -1) {
+	int handle;
+	if((handle = open(file, O_RDWR|O_CREAT,0644|O_TRUNC)) == -1) {
 		printf("Cannot create/open file %s.\n", file);
 		exit(1);		
 	}
-	return 1;
+	return handle;
 }
 
-/* * * * CSV_CLOSE 
- * closes the opened csv-file and stops the write-process */
-int csv_close (int fh, char *file)
+/* * * * EXPORT_CLOSE 
+ * closes the opened file and stops the write-process */
+int export_close (int fh, char *file)
 {
 	if((close(fh)) == -1)
-		printf("Cannot close CSV-File.\n");
+		printf("Cannot close File %s.\n",file);
 	else
-		printf("CSV-File was closes successfully.\n");
+		printf("Export file %s was closed successfully.\n",file);
 	return 1;		
 }

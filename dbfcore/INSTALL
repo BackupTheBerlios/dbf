@@ -1,0 +1,45 @@
+INSTALL INSTRUCTION
+===================
+
+Document Version: 0.1
+Autor: Björn Berg, clergyman@gmx.de
+
+
+
+These are installation instructions for dbf
+
+Linux
+=====
+
+Since version 0.3.2 dbf comes with a Makefile, which helps to install dbf
+correctly. To change the directory you want to install dbf and change the entry
+PREFIX = /usr/local/bin.
+
+To install, type:
+
+make
+
+and as root:
+
+make install
+
+See FAQ first if you have installation problems.
+
+See also README for more details on how to handle dbf and
+http://anubisnet.sf.net/support.php for help on installation problems and
+handling.
+
+
+WINDOWS
+=======
+
+You have to compile dbf by hand, using any compiler you want to.
+More information on http://anubisnet.sf.net/support or in the document FAQ
+attached with the dbf package.
+
+
+MAC OS
+======
+
+At the moment I cannot give installation instructions for Mac operating systems.
+I hope this will change in the future.

@@ -7,6 +7,9 @@
  * 
  * History:
  * $Log: dbf.h,v $
+ * Revision 1.11  2004/08/28 16:30:50  steinm
+ * - remove some global variables, add tablename as new one
+ *
  * Revision 1.10  2004/08/27 06:43:35  steinm
  * - started translation of strings
  * - removed a lot of old code
@@ -67,10 +70,7 @@
  */
 
 extern unsigned int verbosity;
-extern unsigned int dbversion;
-extern unsigned int keep_deleted;
-extern unsigned int dbc;
-extern unsigned int sql_drop_table;
+extern char *tablename;
 
 /*
  *	FUNCTIONS

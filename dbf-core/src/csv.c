@@ -4,22 +4,24 @@
  * dbf Reader and Converter for dBASE files
  * Implementation
  *
- * Author: Bjoern Berg, clergyman@gmx.de
- * Version 0.3, September 2003
+ * Author: Bjoern Berg <clergyman@gmx.de>
+ * Modifications: Uwe Steinmann <uwe@steinmann.cx>
  *
  ****************************************************************************
- * This includes enable dbf to write CSV files
+ * Functions to write CSV files
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.8  2003/11/11 11:29:21  steinm
+ * - added fold marks
+ * - clean up header of file
+ * - removed csv keyword id: because the info ist part of log:
+ *
  * Revision 1.7  2003/11/11 11:23:50  steinm
  * - cut line to less than 80 charssrc/csv.c
  * - added cvs keywords log: and id:
  *
- *
  ***************************************************************************/
-
-/* $Id: csv.c,v 1.7 2003/11/11 11:23:50 steinm Exp $ */
 
 #include "csv.h"
 
@@ -28,7 +30,9 @@ static char CSVFileType = 'C';
 static char CSVSeparator = ',';
 static int CSVTableStructure = 1;
 
-/* allows to change the separator used for CSV output */
+/* setCSVSep() {{{
+ * allows to change the separator used for CSV output
+ */
 int
 setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
     int header_length, const char *in /* __unused */, const char *separator)
@@ -45,9 +49,11 @@ setCSVSep(FILE *fp, const struct DB_FIELD * /*const*/ header,
 	}	
 	return 0;
 }
+/* }}} */
 
-/* writeCSVHeader */
-/* creates the CSV Header with the information provided by DB_FIELD */
+/* writeCSVHeader() {{{
+ * creates the CSV Header with the information provided by DB_FIELD
+ */
 int
 writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
     int header_length,
@@ -78,9 +84,11 @@ writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
 
 	return 0;
 }
+/* }}} */
 
-/* writeCSVLine */
-/* creates a line in the CSV document for each data set */
+/* writeCSVLine {{{
+ * creates a line in the CSV document for each data set
+ */
 int
 writeCSVLine(FILE *fp, const struct DB_FIELD * header,
     const unsigned char *value, int header_length,
@@ -136,3 +144,4 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 
 	return 0;
 }
+/* }}} */

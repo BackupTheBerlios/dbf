@@ -1,3 +1,13 @@
-make[1]: Entering directory `/home/lunatic/devel/dbf/dbf-core/src'
-make[1]: `dbf' is up to date.
-make[1]: Leaving directory `/home/lunatic/devel/dbf/dbf-core/src'
+make[1]: Entering directory `/home/lunatic/devel/unstable/dbf-core/src'
+/usr/bin/gcc -Wall -c an_string.c
+/usr/bin/gcc -Wall -c codepages.c
+/usr/bin/gcc -Wall -c congraph.c
+/usr/bin/gcc -Wall -c csv.c
+/usr/bin/gcc -Wall -c dbf.c
+/usr/bin/gcc -Wall -c dbfversion.c
+/usr/bin/gcc -Wall -c endian.c
+/usr/bin/gcc -Wall -c iodbf.c
+/usr/bin/gcc -Wall -c sql.c
+/usr/bin/gcc -Wall -c statistic.c
+/usr/bin/gcc -Wall -o dbf an_string.o codepages.o congraph.o csv.o dbf.o dbfversion.o endian.o iodbf.o sql.o statistic.o 	
+make[1]: Leaving directory `/home/lunatic/devel/unstable/dbf-core/src'

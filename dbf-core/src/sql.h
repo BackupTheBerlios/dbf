@@ -39,6 +39,8 @@
 
 int setNoDrop (FILE *fp, P_DBF *p_dbf,
     const char *input, const char *separator);
+int setNoCreate (FILE *fp, P_DBF *p_dbf,
+    const char *input, const char *separator);
 int setSQLTrim(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *mode /* ``l''. or ``r'', or ``b'' */);
 int writeSQLHeader(FILE *fp, P_DBF *p_dbf,

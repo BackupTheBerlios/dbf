@@ -41,7 +41,7 @@ int writeSQLHeader (int handle,struct DB_FIELD *header[], struct DB_FIELD *dbf, 
 	strcat(q,";\n\nCREATE TABLE ");
 	strcat(q,table);
 	strcat(q,"(\n");
- 	for(i=1; i < header_length; i++) {
+ 	for(i=1; i < (unsigned int)header_length; i++) {
 		dbf = header[i];
 		strcat(q,dbf->field_name);
 		strcat(q,"\t");
@@ -104,7 +104,7 @@ int writeSQLLine (int handle,struct DB_FIELD *header[], struct DB_FIELD *dbf,cha
 	if((write(handle, buffer, strlen(buffer))) == -1) {
 		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
 	}
-	for (i=1; i < header_length; i++)
+	for (i=1; i < (unsigned int)header_length; i++)
 	{
 		memset(buffer, 0, 65535);
 		memset(NewString, 0, 65535);

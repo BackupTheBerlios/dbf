@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-30 14:16+0200\n"
+"POT-Creation-Date: 2004-09-07 18:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Uwe Steinmann <uwe@steinmann.cx>\n"
 "Language-Team: DE <uwe@steinmann.cx>\n"
@@ -16,42 +16,48 @@ msgstr ""
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/dbf.c:37
+#: src/dbf.c:47
 #, c-format
 msgid "Copyright 2002-2004 Bjoern Berg"
 msgstr "Copyright 2002-2004 Björn Berg"
 
-#: src/dbf.c:76
+#: src/dbf.c:86
 #, c-format
 msgid "Cannot close output file '%s'."
 msgstr "Kann Ausgabe-Datei '%s' nicht schließen."
 
-#: src/dbf.c:82
+#: src/dbf.c:92
 #, c-format
 msgid "Output file '%s' was closed successfully."
 msgstr "Ausgabe-Datei '%s' wurde erfolgreich geschlossen."
 
-#: src/dbf.c:202
+#: src/dbf.c:190
+#, c-format
+msgid "Number of records to output must be greater zero."
+msgstr ""
+"Anzahl der Datensätze, die ausgegeben werden sollen muss größer Null sein."
+
+#: src/dbf.c:251
 #, c-format
 msgid "Invalid debug level ``%s''. Must be from 0 to 9"
 msgstr "Ungültiger Debug-Lever `%s''. Muss zwischen 0 und 9 liegen."
 
-#: src/dbf.c:351
+#: src/dbf.c:420
 #, c-format
 msgid "Usage: %s [options] dbf-file"
 msgstr "Aufruf: %s [Optionen] dbf-Datei"
 
-#: src/dbf.c:353
+#: src/dbf.c:422
 #, c-format
 msgid "Output the contents of a dBASE table file (.dbf)."
 msgstr "Gibt den Inhalt einer dBASE Datei (.dbf) aus."
 
-#: src/dbf.c:355
+#: src/dbf.c:424
 #, c-format
 msgid "Available options:"
 msgstr "Verfügbare Optionen:"
 
-#: src/dbf.c:365
+#: src/dbf.c:434
 #, c-format
 msgid ""
 "The options --sql, --csv, --view-info, --version are mutually exclusive."
@@ -59,17 +65,17 @@ msgstr ""
 "Die Optionen --sql, --csv, --view-info, --version schließen sich gegenseitig "
 "aus."
 
-#: src/dbf.c:367
+#: src/dbf.c:436
 #, c-format
 msgid "The last option specified takes precedence."
 msgstr "Die zuletzt angegebene Option hat Vorrang."
 
-#: src/dbf.c:369
+#: src/dbf.c:438
 #, c-format
 msgid "A single dash (``-'') as a filename specifies stdin or stdout"
 msgstr "Ein Bindestrich (``-'') als Dateiname steht für stdin oder stdout."
 
-#: src/dbf.c:420
+#: src/dbf.c:489
 #, c-format
 msgid ""
 "No input file specified. Please make sure that the last argument is a valid "
@@ -78,19 +84,19 @@ msgstr ""
 "Keine Eingabe-Datei angegeben. Bitte geben Sie als letztes Argument den "
 "Namen der dBASE-Datei an."
 
-#: src/dbf.c:427
+#: src/dbf.c:496
 #, c-format
 msgid "Could not open dBASE file '%s'."
 msgstr "Konnte dBASE-Datei '%s' nicht öffnen."
 
-#: src/dbf.c:442
+#: src/dbf.c:511
 #, c-format
 msgid "Unrecognized option ``%s''. Try ``--help'' for a list of options."
 msgstr ""
 "Unbekannte Option ``%s''. Benutzen Sie ``--help'' für ein Liste aller "
 "Optionen."
 
-#: src/dbf.c:450
+#: src/dbf.c:519
 #, c-format
 msgid ""
 "Output file name was already specified as ``%s''. Try the --help for a list "
@@ -99,7 +105,7 @@ msgstr ""
 "Ausgabe-Datei wurde bereits angegeben als ``%s''. Benutzen Sie ``--help'' "
 "für ein Liste aller Optionen."
 
-#: src/dbf.c:459
+#: src/dbf.c:528
 #, c-format
 msgid ""
 "Input file name is equal to output file name. Please choose a different "
@@ -108,7 +114,7 @@ msgstr ""
 "Name der Eingabe- und Ausgabe-Datei sind identisch. Bitte verwenden Sie "
 "einen anderen Namen für die Ausgabe-Datei."
 
-#: src/dbf.c:500
+#: src/dbf.c:569
 #, c-format
 msgid ""
 "Creating the table name from the export file name results in a NULL string."
@@ -116,24 +122,40 @@ msgstr ""
 "Erzeugen des Tabellennames aus dem Namen der Export-Datei liefert den NULL-"
 "String."
 
-#: src/dbf.c:509
+#: src/dbf.c:578
 #, c-format
 msgid "SQL mode requires a tablename to be set, if the output goes to stdout."
 msgstr ""
 "SQL-Modus erfordert das Setzen eines Tabellennamens, wenn die Ausgabe nach "
 "stdout geht."
 
-#: src/dbf.c:513
+#: src/dbf.c:582
 #, c-format
 msgid "Tablename is '%s'"
 msgstr "Tabellenname ist '%s'"
 
-#: src/dbf.c:531
+#: src/dbf.c:601
 #, c-format
 msgid "Export from '%s' to '%s'"
 msgstr "Export von '%s' nach '%s'"
 
-#: src/dbf.c:554
+#: src/dbf.c:617
+#, c-format
+msgid ""
+"Will only output %d rows, because there are no more rows in the dBASE file."
+msgstr "Gebe nur %d Datensätze aus, weil nicht mehr in der dBASE-Datei sind."
+
+#: src/dbf.c:622
+#, c-format
+msgid "Output records from row %d to %d."
+msgstr "Gebe Datensätze %d bis %d aus."
+
+#: src/dbf.c:628
+#, c-format
+msgid "Row %i."
+msgstr "Datensatz %i."
+
+#: src/dbf.c:647
 #, c-format
 msgid "The row %i is set to 'deleted'."
 msgstr "Der Datensatz $i ist auf 'gelöscht' gesetzt."
@@ -166,67 +188,67 @@ msgstr ""
 "Das Trenn-/Maskierungszeichen ``%s'' ist zu lang. Es muss ein einzelnes "
 "Zeichen sein."
 
-#: src/statistic.c:67
+#: src/statistic.c:44
 #, c-format
 msgid "Unknown (code 0x%.2X)"
 msgstr "Unbekannter Code 0x%.2X."
 
-#: src/statistic.c:82
+#: src/statistic.c:59
 #, c-format
 msgid "File statistics:"
 msgstr "Datei-Statistik:"
 
-#: src/statistic.c:84
+#: src/statistic.c:61
 #, c-format
 msgid "dBase version.........:"
 msgstr "dBase Version.........:"
 
-#: src/statistic.c:87
+#: src/statistic.c:64
 #, c-format
 msgid "Date of last update...:"
 msgstr "Datum letztes Update..:"
 
-#: src/statistic.c:89
+#: src/statistic.c:66
 #, c-format
 msgid "Number of records.....:"
 msgstr "Anzahl der Datensätze.:"
 
-#: src/statistic.c:91
+#: src/statistic.c:68
 #, c-format
 msgid "Length of header......:"
 msgstr "Länge des Headers.....:"
 
-#: src/statistic.c:93
+#: src/statistic.c:70
 #, c-format
 msgid "Record length.........:"
 msgstr "Datensatzlänge........:"
 
-#: src/statistic.c:95
+#: src/statistic.c:72
 #, c-format
 msgid "Columns in file.......:"
 msgstr "Anzahl der Felder.....:"
 
-#: src/statistic.c:112
+#: src/statistic.c:89
 #, c-format
 msgid "field name"
 msgstr "Feldname"
 
-#: src/statistic.c:114
+#: src/statistic.c:91
 #, c-format
 msgid "type"
 msgstr "Type"
 
-#: src/statistic.c:116
+#: src/statistic.c:93
 #, c-format
 msgid "field address"
 msgstr "Feldadresse"
 
-#: src/statistic.c:118
+#: src/statistic.c:95
 #, c-format
 msgid "length"
 msgstr "Länge"
 
-#: src/statistic.c:120
+#: src/statistic.c:97
 #, c-format
 msgid "field dec."
 msgstr "Dezimalst."

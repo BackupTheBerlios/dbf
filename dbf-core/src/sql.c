@@ -9,6 +9,8 @@
  *			Björn Berg, clergyman@gmx.de
  *
  * History:
+ * 2003-11-05	berg			added support for field type 'B' and more decision
+ *								automatism dep. on the source file 
  * 2003-10-30	rintala, berg	valid data fix for date values
  * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
  *								Support for MySQL and PostGres
@@ -18,6 +20,9 @@
  ************************************************************************************/
 
 #include "sql.h"
+#ifndef __DBF_CORE_
+  #include "dbf.h"
+#endif  
 
 static size_t	tablelen;
 /* Whether to trim SQL strings from either side: */
@@ -107,6 +112,23 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 			case 'D':
 				fputs("date", fp);
 				break;
+			case 'B':
+				/*
+				 * In VisualFoxPro 'B' stands for double so it is an int value
+				 */				 
+				if ( dbversion == VisualFoxPro ) {
+					l1 = dbf->field_length;
+				    l2 = dbf->field_decimals;
+					fprintf(fp, "numeric(%d, %d)", l1, l2);
+				} 
+				break;
+			case 'L':
+				/* 
+				 * Type logical is not supported in SQL, you have to use number
+				 * resp. numeric to keep to the standard
+				 */
+				 fprintf(fp, "numeric(1,0)");
+				break;	 	
 			default:
 				fprintf(fp, "/* unsupported type ``%c'' */",
 				    dbf->field_type);
@@ -136,6 +158,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		const unsigned char *end, *begin;
 		int isstring = (dbf->field_type == 'M' || dbf->field_type == 'C');
 		int isdate = (dbf->field_type == 'D');
+		int isbool = (dbf->field_type == 'L');
 		
 		/*
 		 * A string is only trimmed if trimright and/or trimleft is set
@@ -181,10 +204,10 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		 * written. [...] In my application I can live with date like 1970-01-01.
 		 * - Tommi Rintala, by email, Oct 2003
 		 */		
-		if (isdate) {
+		/*if (isdate) {
 			fputs("19700101", fp);
 			goto endstring;
-		}	
+		}*/	
 
 		if (begin == end) {
 			if (isstring) {				
@@ -193,12 +216,38 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 				
 			fputs("NULL", fp);
 			goto endfield;
-
 		}
-
-		do	/* Output the non-empty string:*/
-			putc(*begin++, fp);
-		while (begin != end);
+		
+		if (isbool) {
+			char sign = *begin++;				
+			if ( sign == 't' || sign == 'y' || sign == 'T' || sign == 'Y') {
+				putc('1', fp);
+			} else { 
+				putc('0', fp);
+			}	
+			
+		} else if (dbf->field_type == 'B') {	
+		
+			char *fmt = malloc(20);
+			sprintf(fmt, "%%%d.%df", dbf->field_length, dbf->field_decimals);
+			fprintf(fp, fmt, *(double *)begin);
+			begin += dbf->field_length;
+			
+		} else {		
+			
+			do	{ /* Output the non-empty string:*/				
+				char sign = *begin++;
+				switch (sign) {
+					case '\'':
+						putc('\\', fp);
+						putc('\'', fp);
+						break;
+					default:					
+						putc(sign, fp);						
+				}				
+			} while (begin != end);
+			
+		}	
 
 		if (isstring || isdate)
 		endstring:			

@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.13  2003/12/16 19:16:57  rollinhand
+ * Corrected handling of deleted datasets, some tunings, see Changelog for more details
+ *
  * Revision 1.12  2003/12/03 06:44:13  steinm
  * - checks if filesize equals calculated file size
  * - Paths to a backlink database are taken into account for header_length
@@ -49,25 +52,48 @@ int	isbigendian;
 unsigned int dbversion = 0x00;
 unsigned int verbosity = 1;
 unsigned int keep_deleted = 0;
+/* 0 = no backlink, 1 = backlink */
+unsigned int dbc = 0;
 
 
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.9, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
 
 /* dbf_backlink_exists() {{{
- * checks if a backlink is at the end of the field definition, this backlink is about 263 byte
+ * checks if a backlink is at the end of the field definition, this backlink is
+ * about 263 byte
  */
-static int dbf_backlink_exists() 
+static int dbf_backlink_exists(int fh, const char *file) 
 {
 	int number_of_fields;
+	long pos;
+	char terminator[1], *pt=terminator;
+
+	/* As stated in Microsofts TechNet Article about Visual FoxPro, we have to
+	 * proof if the Field Terminator is set, because dbf puts the backlink to
+	 * the normal header. The sign 0x0Dh is invalid in the backlink so we can
+	 * easily prove for it and verify Microsofts formula.
+	 * -- berg, 2003-12-08	
+	 */
+	pos = lseek(fh, 0L, SEEK_CUR);
+	lseek(fh, rotate2b(db->header_length)-1, SEEK_SET);
+	
+	if ((read( fh, (char *)pt, 1)) == -1 ) {
+		perror(file);
+		exit(1);
+	}
+	
+	lseek(fh, pos, SEEK_SET);
 	
 	number_of_fields = (rotate2b(db->header_length) - 296) / 32;	
-	if (number_of_fields != db->records) {
+	
+	if ( (number_of_fields != db->records) && *pt != 0x0D) {
+		fprintf(stderr, "Database backlink found!\n");
 		return 1;
-	}
+	}	
 	
 	return 0;	
 }
@@ -83,7 +109,7 @@ dbf_check(int fh, const char *file)
 	
 	pos = lseek(fh, 0L, SEEK_CUR);
 	filesize = lseek(fh, 0L, SEEK_END);
-	lseek(fh, pos, SEEK_SET);	
+	lseek(fh, pos, SEEK_SET);		
 	
 	calc_filesize = (rotate2b(db->header_length) + (db->records * db->record_length) + 1) ;
 	
@@ -250,13 +276,12 @@ struct options {
 		"--noconv",	setNoConv,	NULL,		ARG_BOOLEAN,
 		"do not run each each record through charset converters",
 		"to use the experimental converters"
-	},
-	/* not supported yet */
-	/*{
+	},	
+	{
 		"--keepdel",	setKeepDel,	NULL,		ARG_NONE,
 		"converts also deleted datasets",
 		"do no conversion"
-	},*/
+	},
 	{
 		"--debug",	setVerbosity,	NULL,		ARG_OPTION,
 		"{0-9} -- set the debug level. 0 is the quietest",
@@ -309,8 +334,8 @@ main(int argc, char *argv[])
 	const char	*filename = NULL, *export_filename = NULL;
 	headerMethod	 writeHeader = NULL;
 	lineMethod	 writeLine = printDBF;
-	unsigned char	*record;
-	char *flag_byte;
+	unsigned char	*record, *s1, *s2;
+	unsigned int dataset_deleted;
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s [option][argument] dbf-file, -h for help\n", *argv);
@@ -330,12 +355,15 @@ main(int argc, char *argv[])
 		}	
 	}		
 	
-	/* TODO */
-	/* check architecture: little-endian/big-endian XXX Should be done at compile time! */
+	/* TODO
+	 * check architecture: little-endian/big-endian XXX Should be done at
+	 * compile time! 
+	 */
 	isbigendian = IsBigEndian();
 
-	/* fill filename with last argument */
-	/* Test if last argument is an option or a possible valid filename */
+	/* fill filename with last argument 
+	 * Test if last argument is an option or a possible valid filename 
+	 */
 	filename = argv[--argc];
 	if (filename[0] == '-' && filename[1] != '\0') {
 		fprintf(stderr, "\nERROR: Found no file for input\n"
@@ -356,19 +384,17 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 	
-	/* This simply decision must be verified with FoxPro and dBASE 4 versions
-	 * 2003-12-02, berg 
+	/* Looks for backlinks, for more details see dbf_backlink_exists()
 	 */
-	if ( dbf_backlink_exists() ) {
-		/* 263 bytes backlink info		 		 
-		 */
+	dbc = dbf_backlink_exists(dbfhandle, filename); 
+	
+	if ( dbc ) {		
 		header_length = (rotate2b(db->header_length) - 263) / 32;		
 	} else {	
 		header_length = rotate2b(db->header_length) / 32;
 	}	
 
-	/*
-	 * Scan through arguments looking for options
+	/* Scan through arguments looking for options
 	 */
 	for(i=1; i < argc; i++) {
 		struct options *option = options;
@@ -426,15 +452,13 @@ main(int argc, char *argv[])
 	if(!export_filename || 0 == strcmp(export_filename, "-"))
 		output = stdout;
 	else
-		output = export_open(export_filename);
-		/* This simply decision must be verified with FoxPro and dBASE 4 versions
-		 * 2003-12-02, berg 
-		 */
-		 if ( dbf_backlink_exists() ) {		
+		output = export_open(export_filename);		
+		 if ( dbc ) {		
 			 header_length = (rotate2b(db->header_length) - 263) / 32;		
 		 } else {	
 			 header_length = rotate2b(db->header_length) / 32;
 		 }	
+		
 		record_length = rotate2b(db->record_length);
 		getHeaderValues(dbfhandle,filename,header_length);
 
@@ -454,38 +478,48 @@ main(int argc, char *argv[])
 		if (verbosity > 0)
 			fprintf(stderr, "Export from %s to %s\n",filename,
 			    output == stdout ? "stdout" : export_filename);
-
-		//lseek(dbfhandle, rotate2b(db->header_length) + 1, SEEK_SET);
-		
-		/* At this point we look if the following data set is deleted */				
+				
+		/* Because we do no longer start at the offset header_length+1, we have
+		 * to check manually if the end of the database is reached. This is done in
+		 * the while loop. 
+		 */
 		lseek(dbfhandle, rotate2b(db->header_length), SEEK_SET);
 		
-		if ( (flag_byte = malloc(1)) == NULL ) {
-			perror("malloc");
-			exit(1);
-		}  
-		
-		if ( -1 == read(dbfhandle, flag_byte, 1) ) {
-			perror("reading Flag Byte");
-			exit(1);
-		}
-		
-		if (*flag_byte == '*' && keep_deleted == 0) {
-			fputc('#', output);			
-		}
-		*flag_byte = *(record + record_length - 1);
-		
 		while ((i = read(dbfhandle, record, record_length)))
-		{
+		{			
+			dataset_deleted = 0;
+		
 			if (i == -1) {
 				perror("reading the next block");
 				exit(1);
+			}			
+			
+			if (record[0] == '*' ) {
+				dataset_deleted = 1;
+			}		  	
+			
+			/* Delete the flag byte in the record */	
+			s1 = record+1;	
+			s2 = s1 + 1;					
+			
+			do {
+				*s1++ = *s2++;				
+			} while (*s2);
+				
+			/* Look if the dataset is deleted or the end of the dBASE file was
+			 * reached without notification by read. The end of each dBASE file is
+			 * marked with a dot.
+			 */
+			if ( (!dataset_deleted || keep_deleted == 1) && record[0] != 0x1A) {
+				/* automatically convert options */
+				if (convert)
+					cp850andASCIIconvert(record);
+				writeLine(output, header, record, header_length,
+			    	filename, export_filename);
+			} else if ( verbosity >=1 && record[0] != 0x1A) {				
+				fprintf(stderr, "The dataset at offset %i is set to 'deleted'.\n",								 
+								 lseek(dbfhandle,0L,SEEK_CUR));				
 			}
-			/* automaticly convert options */
-		  	if (convert)
-				cp850andASCIIconvert(record);
-			writeLine(output, header, record, header_length,
-			    filename, export_filename);
 		}
 		free(record);
 	}

@@ -46,6 +46,8 @@
 
 extern unsigned int verbosity;
 extern unsigned int dbversion;
+extern unsigned int keep_deleted;
+extern unsigned int dbc;
 
 typedef int	(*headerMethod)(FILE *output, const struct DB_FIELD * header,
     int header_length,

@@ -1,0 +1,99 @@
+INSTALLATION INSTRUCTIONS
+=========================
+
+Document Version: 0.3, 2003-05-22
+Author: Bjoern Berg, clergyman@gmx.de
+
+There are several packages of dbf available. In the following, I will expalin
+which package you need for your platform:
+
+dbf-x.x.src.tar.gz:
+-------------------
+This package contains all sources and includes, the complete documentation but 
+no binaries. You have to compile your own binaries with this package, this also
+recommends several different development tools on your operating system.
+
+dbf-x.x.bin.ELF.zip:
+--------------------
+This package contains a binary release for Linux/Unix operating systems which runs
+on a x86 architecture.
+
+dbf-x.x.bin.AXP.zip:
+--------------------
+This package contains a binary release Linux/Unix operating systems which runs on
+an Alpha/RISC architecture.
+
+dbf-x.x.bin.PPC.zip:
+--------------------
+This package contains a binary release Linux/Unix operating systems which runs on a
+PowerPC architecture.
+
+dbf-x.x.win.zip:
+----------------
+This package contains a binary release for Windows 95/98/ME/NT/2000/XP which runs 
+on a x86 architecture.
+
+
+These are installation instructions for dbf:
+
+Linux
+=====
+
+Since version 0.3.2 dbf comes with a Makefile, which helps to install dbf
+correctly. To change the directory you want to install dbf and change the entry
+PREFIX = /usr/local/bin.
+
+To install, type:
+
+make
+
+and as root:
+
+make install (or su -c 'make install')
+
+See FAQ first if you have installation problems.
+
+See also README for more details on how to handle dbf and
+http://anubisnet.sf.net/support.php for help on installation problems and
+handling.
+
+
+WINDOWS
+=======
+
+Versions below release 0.6
+--------------------------
+
+You have to compile dbf by hand, using any compiler you want to.
+More information on http://anubisnet.sf.net/support or in the document FAQ
+attached with the dbf package.
+
+Versions since release 0.6
+--------------------------
+
+Since version 0.6 dbf contains a script to build the dbf executable very
+easily. All you need is nmake and link32.exe and some libraries. The script
+expects, that you have a development tool like Visual Studio installed.
+
+In the root directory of the downloaded and extracted dbf-package, just
+enter "compile.bat" in a command line an watch the output of compile.bat.
+
+The created executable resides in src/Debug. You can copy it elsewhere.
+
+If you want dbf executable from everywehre, add the path to dbf to %PATH%.
+
+
+MAC OS
+======
+
+MacOS X:
+--------
+
+If you have installed a development environment based on the GNU tools, like
+GCC and GDB, you can orientate on the Linux installation guide.	
+
+MacOS < 10.x
+------------
+
+At the moment I cannot give installation instructions for Mac operating systems.
+I hope this will change in the future.

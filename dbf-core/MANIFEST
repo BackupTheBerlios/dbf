@@ -1,0 +1,17 @@
+dbf-0.5/BUGS
+dbf-0.5/CHANGELOG
+dbf-0.5/CREDITS
+dbf-0.5/FAQ
+dbf-0.5/INSTALL
+dbf-0.5/MANIFEST
+dbf-0.5/Makefile
+dbf-0.5/README
+dbf-0.5/an_string.h
+dbf-0.5/codepages.h
+dbf-0.5/congraph.h
+dbf-0.5/dbf.c
+dbf-0.5/dbfversion.h
+dbf-0.5/endian.h
+dbf-0.5/iodbf.h
+dbf-0.5/statistic.h
+dbf-0.5/tables.h

@@ -30,6 +30,7 @@ clean:
 	@(echo "");
 	@(echo -e "$(RED)Cleaning directories...$(NORMAL)");
 	@(rm -f make.log);
+	@(rm -f MANIFEST);
 	@(for i in $(DIRS); do cd $(DIRS); rm -f *.o; rm -f $(BIN); done);
 	
 src-dist:	

@@ -5,9 +5,11 @@
  * Author: Bjoern Berg, September 2002
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBase III, IV and 5.0
- * Version 0.2
+ * Version 0.3
  *
  * History:
+ * - Version 0.3 - 2003-08-27: teterin, berg
+ *   changed unsigned integer values to u_int 
  * - Version 0.2 - 2003-01-21
  *	 added support for Alpha RISC systems (cancellation of datatype long, because
  *	 AXP uses 8 Byte for long, i386 4 Byte -> incompatible)
@@ -21,7 +23,15 @@
 #ifndef _DBF_TABLES_
 #define _DBF_TABLES_
 
-#include <sys/types.h>
+#ifdef __unix__   
+   #include <sys/types.h>
+   #define __ANUBISNET_TYPES__
+   typedef u_int16_t uint16_t;
+   typedef u_int32_t uint32_t;
+#else
+   #include <sys/types.h>
+#endif
+
 
 /*
  * These defines are used to distinguish between types in the
@@ -45,8 +55,8 @@ struct DB_HEADER {
 	unsigned char last_update[3]; 	/* Byte: 1-3; date of last update */
     //unsigned long records; 		/* Byte: 4-7; number of records in table */
     unsigned int records;			/* Byte: 4-7; number of records in table */
-	uint16_t header_length;	/* Byte: 8-9; number of bytes in the header */
-	uint16_t record_length;	/* Byte: 10-11; number of bytes in the record */
+	u_int16_t header_length;			/* Byte: 8-9; number of bytes in the header */
+	u_int16_t record_length;			/* Byte: 10-11; number of bytes in the record */
 	unsigned char reserved01[2];	/* Byte: 12-13; reserved, see specification of dBase databases */
 	unsigned char transaction;		/* Byte: 14; Flag indicating incomplete transaction */
 	unsigned char encryption;		/* Byte: 15; Encryption Flag */

@@ -29,6 +29,13 @@
 #define _true 0x01
 #define _false 0x00
 
+#include <sys/types.h>
+
+#ifndef __ANUBISNET_TYPES__
+  typedef u_int16_t uint16_t;
+  typedef u_int32_t uint32_t;
+#endif
+
 typedef int _bool;
 
 /* FUNCTIONS */

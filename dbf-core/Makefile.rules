@@ -2,6 +2,9 @@
 # Version 0.8
 # History:
 # $Log: Makefile.rules,v $
+# Revision 1.6  2003/11/20 12:56:39  rollin_hand
+# *** empty log message ***
+#
 # Revision 1.5  2003/11/19 06:59:57  steinm
 # - CHANGELOG is now ChangeLog
 #
@@ -18,7 +21,7 @@ CFLAGS = -Wall
 LOG = make.log
 DIRS = src
 BIN = dbf
-VERSION = 0.8
+VERSION = 0.8.1
 PREFIX = /usr/local
 
 # Compiler settings - do not change

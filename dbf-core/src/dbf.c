@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.9  2003/11/19 06:55:58  steinm
+ * - passing a filename '-' to --csv or --sql is treated as stdout
+ *
  * Revision 1.8  2003/11/13 11:19:34  rollin_hand
  * - erased the warning in the fail safe routine
  *
@@ -338,7 +341,10 @@ main(int argc, char *argv[])
 	if (verbosity > 0)
 		banner();
 
-	output = export_open(export_filename);
+	if(0 == strcmp(export_filename, "-"))
+		output = stdout;
+	else
+		output = export_open(export_filename);
 	header_length = rotate2b(db->header_length) / 32;
 	record_length = rotate2b(db->record_length);
 	getHeaderValues(dbfhandle,filename,header_length);

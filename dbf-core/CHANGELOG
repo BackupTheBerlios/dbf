@@ -1,7 +1,7 @@
 CHANGELOG dbf - dBASE Reader and Converter
 Author: Bjoern Berg, clergyman@gmx.de
-Please send suggestions, code pieces and comments directly to the authors email
-address [anubisnet group]
+Please send suggestions, code pieces and comments directly to the authors
+email address [anubisnet group]
 File sorted in order of date of release
 
 0.9		STABLE
@@ -17,8 +17,8 @@ File sorted in order of date of release
   never be overwritten if the options filename is missing
 - Tab-separated files without quoted text-passages can be created by using
   't' as separator.
-- Fix for date strings in SQL: According the PostgreSQL manual, SQL (ANSI) requires 
-  date strings to be quoted, ie. '20031029' 
+- Fix for date strings in SQL: According the PostgreSQL manual, SQL (ANSI)
+  requires date strings to be quoted, ie. '20031029' 
   send in by Tommi Rintala, t2r@wasalab.com 
 - Can differentiate between dBASE, FoxPro, FoxBase and Clipper
 - --view-info reports the database type and version number
@@ -31,16 +31,17 @@ File sorted in order of date of release
 2003-09-14	(Release-Date)
 Changelog send in by Mikhail Teterin:
 - Totally reworked options parsing.
-- Using the new options-parsing scheme, I added the way to specify the desired CSV separator, 
-  debug level, and string-trimming option (below).
-- When outputing the SQL file, strings, probably, should not be trimmed, and that is now a 
-  default. The trimming can now be specified as:
+- Using the new options-parsing scheme, I added the way to specify the
+  desired CSV separator, debug level, and string-trimming option (below).
+- When outputing the SQL file, strings, probably, should not be trimmed,
+  and that is now a default. The trimming can now be specified as:
 		--trim {r|l|b}
-- The two codepage-conversion functions combined into one, which is also made table-driven.
+- The two codepage-conversion functions combined into one, which is also
+  made table-driven.
 - Record-conversion can now be turned off with the --noconv option.
-- While input is still opened and read directly with open/read (perhaps, it should stay 
-  that way), the output file is operated on using the stdio functions fopen() and fprintf(),
-  fputs, putc().
+- While input is still opened and read directly with open/read (perhaps,
+  it should stay that way), the output file is operated on using the stdio
+	functions fopen() and fprintf(), fputs, putc().
 - Some reorganization in the variable-declaration and other cleanups...  
   
 
@@ -51,7 +52,8 @@ Changelog send in by Mikhail Teterin:
 - works on AIX 4.3.3
 - new file system structure -> src contains all header and source files
 - fixes in macro definitions
-- increased macro MAX_FIELDS from 50 to 500 to solve bug #003 reported in the document BUGS
+- increased macro MAX_FIELDS from 50 to 500 to solve bug #003 reported in
+  the document BUGS
 - fixes in endian.c, reported by Uwe Steinmann
 
 
@@ -62,8 +64,8 @@ Changelog send in by Mikhail Teterin:
 * dbf.c:
 	- Removed free() calls on static buffers. char buffer[565656];
 	- Caught return from csv_open in csvhandle.
-	- initialised export_filename to NULL to ensure later calls like if(export_filename)
-	  succeed correctly.
+	- initialised export_filename to NULL to ensure later calls like
+	  if(export_filename) succeed correctly.
 * iodbf.h:
 	- Made csv_open return the handle that it generates instead of 1. 
 - minor/major bugfixes
@@ -72,7 +74,8 @@ Changelog send in by Mikhail Teterin:
 
 0.5beta02	DEVELOPMENT
 07.02.2003 (Release-Date)
-- Override flag for Big Endian systems implemented. Use --ppc to disable the system check
+- Override flag for Big Endian systems implemented. Use --ppc to disable
+  the system check
 - Fixes in the help
 - minor feature enhancements and improved error detection
 
@@ -109,7 +112,8 @@ Changelog send in by Mikhail Teterin:
 
 0.3.1	DEVELOPMENT
 23.11.2002 (Release-Date)
-- Fix implementation send in by Andy Jeffries, Email: opensource@andyjeffries.co.uk
+- Fix implementation send in by Andy Jeffries,
+  Email: opensource@andyjeffries.co.uk
   Description:
   I had a problem trying to convert a DBF file that was about 280Mb in size. 
   Basically you had a memory leak with your dynamically allocated buffers. [...]
@@ -150,14 +154,14 @@ longer automated output)
 
 0.2.5
 15.09.2002 (Release-/Modification-Date)
-- Implementation of Code Pages to view umlauts and special chars correctly (this
-is a development feature which has to be tested by the people using dbf, because
-I did not find any documentation about the reserved header bits in dbf III. At
-the moment dbf controls the behaviour by Bit 31)
-- Supported languages with special chars at the moment: german, french; mor to
-come
+- Implementation of Code Pages to view umlauts and special chars correctly
+  (this is a development feature which has to be tested by the people using
+	dbf, because I did not find any documentation about the reserved header
+	bits in dbf III. At the moment dbf controls the behaviour by Bit 31)
+- Supported languages with special chars at the moment: german, french;
+  more to come
 - for more details acc. to the new features check out the README and the
-anubisnet Support Center
+  anubisnet Support Center
 
 
 0.2

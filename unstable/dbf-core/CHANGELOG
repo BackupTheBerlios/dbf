@@ -4,6 +4,23 @@ Please send suggestions, code pieces and comments directly to the authors email
 address [anubisnet group]
 File sorted in order of date of release
 
+0.7		STABLE
+2003-09-10	(Release-Date)
+Changelog send in by Mikhail Teterin:
+- Totally reworked options parsing.
+- Using the new options-parsing scheme, I added the way to specify the desired CSV separator, 
+  debug level, and string-trimming option (below).
+- When outputing the SQL file, strings, probably, should not be trimmed, and that is now a 
+  default. The trimming can now be specified as:
+		--trim {r|l|b}
+- The two codepage-conversion functions combined into one, which is also made table-driven.
+- Record-conversion can now be turned off with the --noconv option.
+- While input is still opened and read directly with open/read (perhaps, it should stay 
+  that way), the output file is operated on using the stdio functions fopen() and fprintf(),
+  fputs, putc().
+- Some reorganization in the variable-declaration and other cleanups...  
+  
+
 0.6		STABLE
 (Release-Date)
 - dbf can export dBASE files to SQL instruction sets   

@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.25  2004/08/30 11:17:10  steinm
+ * - fixed segm fault when export file name has no extension in sql output
+ *
  * Revision 1.24  2004/08/30 11:13:49  steinm
  * - tablename is created from export file name by removing the path
  *   and the file extension.
@@ -541,8 +544,8 @@ main(int argc, char *argv[])
 	if(!tablename && export_filename && 0 != strcmp(export_filename, "-")) {
 		char *ptr;
 		tablename = basename(export_filename);
-		ptr = strrchr(tablename, '.');
-		*ptr = '\0';
+		if(NULL != (ptr = strrchr(tablename, '.')))
+			*ptr = '\0';
 	}
 		
 

@@ -47,6 +47,8 @@ int setSQLEmptyStrIsNULL(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *mode);
 int writeSQLHeader(FILE *fp, P_DBF *p_dbf,
     const char *filename, const char *export_filename);
+int writeSQLFooter(FILE *fp, P_DBF *p_dbf,
+    const char *filename, const char *export_filename);
 int writeSQLLine(FILE *fp, P_DBF *p_dbf,
     const unsigned char *value, int header_length,
     const char *filename,  const char *export_filename);

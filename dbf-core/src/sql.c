@@ -7,31 +7,8 @@
  * 			Mikhail Teterin,
  *			Björn Berg, clergyman@gmx.de
  *
- * History:
- * $Log: sql.c,v $
- * Revision 1.15  2004/08/30 11:34:25  steinm
- * - numeric NULL values (all spaces in the field) are converted to a NULL
- *   sql value
- *
- * Revision 1.14  2004/08/30 10:23:29  steinm
- * - rewrote large parts of writeSQLLine()
- * - added new functions to handle the option --empty-str-is-null
- *
- * Revision 1.13  2004/08/28 16:30:46  steinm
- * - many small improvements
- *
- * Revision 1.12  2004/08/27 09:18:55  steinm
- * - use gettext for outputing text
- *
- * Revision 1.11  2004/08/27 05:44:11  steinm
- * - used libdbf for reading the dbf file
- *
- * Revision 1.10  2004/03/16 21:01:46  rollinhand
- * New flag to prevent Drop/Create statements by user interaction
- *
- * Revision 1.9  2004/01/03 15:42:40  rollinhand
- * fixed problems with NULL values
- *
+ *****************************************************************************
+ * $Id: sql.c,v 1.16 2004/08/30 12:03:41 steinm Exp $
  ****************************************************************************/
 
 #include "dbf.h"
@@ -234,7 +211,33 @@ int writeSQLHeader (FILE *fp, P_DBF *p_dbf,
 		fputs(");\n\n", fp);
 	}
 
+	if(usecopy) {
+		int columns, i;
+
+		fprintf(fp, "COPY %s (", tablename);
+		columns = dbf_NumCols(p_dbf);
+		for (i = 0; i < columns; i++) {
+			const char *field_name;
+			field_name = dbf_ColumnName(p_dbf, i);
+			fprintf(fp, "%s", field_name);
+			if (i < columns-1)
+				fputc(',', fp);
+		}
+		fputs(") FROM stdin;\n", fp);
+	}
+
 	return 0;
+}
+/* }}} */
+
+/* writeSQLFooter() {{{
+ * creates the SQL Footer
+ */
+int writeSQLFooter (FILE *fp, P_DBF *p_dbf,
+    const char *filename, const char *export_filename)
+{
+	if(usecopy)
+		fputs("\\.\n", fp);
 }
 /* }}} */
 
@@ -250,7 +253,8 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 	columns = dbf_NumCols(p_dbf);
 
-	fprintf(fp, "INSERT INTO %s VALUES (", tablename);
+	if(!usecopy)
+		fprintf(fp, "INSERT INTO %s VALUES (", tablename);
 
 	for (i = 0; i < columns; i++) {
 		const unsigned char *end, *begin;
@@ -275,7 +279,10 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 			;
 
 		if(begin == end) {
-			fputs("NULL", fp);
+			if(usecopy)
+				fputs("\\N", fp);
+			else
+				fputs("NULL", fp);
 			continue;
 		}
 
@@ -291,14 +298,22 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 				;
 			if (end == begin && *end == ' ') {
 				if(empty_str_is_null || !isstring) {
-					fputs("NULL", fp);
+					if(usecopy)
+						fputs("\\N", fp);
+					else
+						fputs("NULL", fp);
 				} else {
-					putc('\'', fp);
-					putc('\'', fp);
+					if(!usecopy) {
+						putc('\'', fp);
+						putc('\'', fp);
+					}
 				}
 				/* Is this the last field? */
 				if (i < columns-1) {
-					putc(',', fp);
+					if(usecopy)
+						putc('\t', fp);
+					else
+						putc(',', fp);
 				}
 				continue;
 			}
@@ -310,7 +325,7 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 				begin++;
 		}
 
-		if (isdate || isstring) {
+		if (!usecopy && (isdate || isstring)) {
 			putc('\'', fp);
 		}
 
@@ -351,17 +366,22 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 		}
 
-		if (isstring || isdate)
+		if (!usecopy && (isdate || isstring))
 			putc('\'', fp);
 
 		/* Is this the last field? */
 		if (i < columns-1) {
-			putc(',', fp);
+			if(usecopy)
+				putc('\t', fp);
+			else
+				putc(',', fp);
 		}
 
 	}
-	/* Terminate INSERT INTO with ) and ; */
-	fputs(");\n", fp);
+	/* Terminate INSERT INTO or COPY line ; */
+	if(!usecopy)
+		fputs(");", fp);
+	fputs("\n", fp);
 
 	return 0;
 }

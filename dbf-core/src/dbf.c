@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.16  2004/03/21 15:33:16  rollinhand
+ * Changes in dbf_check()
+ *
  * Revision 1.15  2004/03/16 20:56:30  rollinhand
  * Endian Swapping centralized in dbf_read_header
  *
@@ -41,6 +44,7 @@
 
 static struct DB_HEADER db_buf, *db = &db_buf;
 static struct DB_FIELD *header;
+static struct DB_FSIZE *fsz;
 
 static int convert = 1;
 
@@ -103,18 +107,21 @@ static int dbf_backlink_exists(int fh, const char *file)
 static int
 dbf_check(int fh, const char *file)
 {
-	u_int32_t filesize, pos, calc_filesize;
+	//u_int32_t filesize, pos, calc_filesize;
+	u_int32_t pos;
 
-	pos = lseek(fh, 0L, SEEK_CUR);
-	filesize = lseek(fh, 0L, SEEK_END);
+	pos = rotate4b( lseek(fh, 0L, SEEK_CUR) );
+	fsz->real_filesize = rotate4b( lseek(fh, 0L, SEEK_END) );
 	lseek(fh, pos, SEEK_SET);
 
-	calc_filesize = (db->header_length + (db->records * db->record_length) + 1) ;
+	fsz->calc_filesize = (db->header_length + (db->records * db->record_length) + 1) ;
 
-	if ( calc_filesize != filesize ) {
+	if ( fsz->calc_filesize != fsz->real_filesize ) {
+		strcpy(fsz->integrity,"not OK");
 		return 0;
 	}
 
+	strcpy(fsz->integrity,"OK");
 	return 1;
 }
 /* }}} */

@@ -23,6 +23,7 @@
 /* CSVFileType describes the type the converted file is of: (C)SV or (T)SV */
 static char CSVFileType = 'C';
 static char CSVSeparator = ',';
+static int CSVTableStructure = 1;
 
 /* allows to change the separator used for CSV output */
 int
@@ -49,8 +50,27 @@ writeCSVHeader (FILE *fp, const struct DB_FIELD * header,
     int header_length,
     const char *in /* __unused */, const char *out /* __unused */)
 {
-	while (--header_length)
-		fprintf(fp, "%s%c", (++header)->field_name, CSVSeparator);
+	while (--header_length) {
+		header++;
+		if(CSVTableStructure && CSVSeparator == ',')
+			fputs("\"", fp);
+		fprintf(fp, "%s", header->field_name);
+		if(CSVTableStructure) {
+			fprintf(fp, ",%c", header->field_type);
+			switch(header->field_type) {
+				case 'C':
+					fprintf(fp, ",%d", header->field_length);
+					break;
+				case 'N':
+					fprintf(fp, ",%d,%d", header->field_length, header->field_decimals);
+					break;
+			}
+		}
+		if(CSVTableStructure && CSVSeparator == ',')
+			fputs("\"", fp);
+		if(header_length > 1)
+			putc(CSVSeparator, fp);
+	}
 	fputs("\n", fp);
 
 	return 0;
@@ -106,7 +126,8 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 		if ( isstring && CSVFileType == 'C')
 			putc('\"', fp);
 
-		putc(CSVSeparator, fp);
+		if(header_length > 1)
+			putc(CSVSeparator, fp);
 	}
 	fputs("\n", fp);
 

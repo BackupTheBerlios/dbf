@@ -46,4 +46,5 @@ newer versions:
 
 * Uwe Steinmann, uwe@steinmann.cx: PPC
 * Kai Witte, kai@witte-offline.de: PPC
-* John McVeagh: AIX
+* John McVeagh: AIX 4.3.3
+* Ivan Tsang: AIX 5.2, gcc 3.3.1

@@ -8,6 +8,9 @@
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.19  2004/04/25 16:00:52  rollinhand
+ * added dbf_open / dbf_close
+ *
  * Revision 1.18  2004/04/16 12:29:56  rollinhand
  * fixes a segfault, when no export-filename is given
  *
@@ -68,6 +71,47 @@ static void
 banner()
 {
 	fputs("dBase Reader and Converter V. 0.9pre, (c) 2002 - 2004 by Bjoern Berg\n", stderr);
+}
+
+/* * * * DBF_OPEN
+ * open the the current dbf file and returns file handler
+ */
+
+int dbf_open(const char *file)
+{
+	int dbfhandle;
+
+	if (file[0] == '-' && file[1] == '\0')
+		return fileno(stdin);
+
+	if ((dbfhandle = open(file, O_RDONLY|O_BINARY)) == -1) {
+		fprintf(stderr, "Cannot open file %s.\n"
+		    "try --help or -h for usage\n", file);
+		exit(1);
+	}
+
+	return dbfhandle;
+}
+
+/* * * * DBF_CLOSE
+ * close the current open dbf file
+ * incl. error handling routines
+ */
+int dbf_close(int fh, const char *file)
+{
+	if ( fh == fileno(stdin) )
+		return 0;
+
+	if( (close(fh)) == -1 ) {
+		fputs("Cannot close ", stderr);
+		perror(file);
+		return 1;
+	}
+
+	if (verbosity > 2)
+		fprintf(stderr, "File %s was closed successfully.\n", file);
+
+	return 0;
 }
 
 /* dbf_backlink_exists() {{{

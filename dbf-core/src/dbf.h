@@ -7,6 +7,9 @@
  * 
  * History:
  * $Log: dbf.h,v $
+ * Revision 1.8  2004/04/25 16:00:52  rollinhand
+ * added dbf_open / dbf_close
+ *
  * Revision 1.7  2004/04/25 15:20:02  rollinhand
  * several changes - not yet verified
  *
@@ -19,24 +22,37 @@
 #define __DBF_CORE__
 
 #ifdef __unix__
-   #include <sys/types.h>
-   #ifndef __ANUBISNET_TYPES__
-   #define __ANUBISNET_TYPES__
-     typedef u_int16_t uint16_t;
-     typedef u_int32_t uint32_t;
-   #endif
+    #include <sys/types.h>
+    #include <sys/stat.h>
+	#include <unistd.h>
+   	#ifndef __ANUBISNET_TYPES__
+   	#define __ANUBISNET_TYPES__
+    	typedef u_int16_t uint16_t;
+     	typedef u_int32_t uint32_t;
+   	#endif
 /*
  * Windows does not know UINT16 types
  */
 #elif _WIN32
+	#include <io.h>
+	#include <sys\stat.h>
 	#include <windows.h>
     #ifndef __ANUBISNET_TYPES__
     #define __ANUBISNET_TYPES__
       typedef UINT32 u_int32_t;
       typedef unsigned short u_int16_t;
     #endif
+#elif __MSDOS__
+	#include <io.h>
+	#include <sys\stat.h>
 #else
-   #include <sys/types.h>
+	#include <sys/stat.h>
+	#include <unistd.h>
+   	#include <sys/types.h>
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY 0
 #endif
 
 #include <stdio.h>
@@ -173,6 +189,14 @@ extern unsigned int dbversion;
 extern unsigned int keep_deleted;
 extern unsigned int dbc;
 extern unsigned int sql_drop_table;
+
+/*
+ *	FUNCTIONS
+ */
+
+// essential to open and close a file
+int dbf_open (const char *file);
+int dbf_close (int fh, const char *file);
 
 typedef int	(*headerMethod)(FILE *output, const struct DB_FIELD * header,
     int header_length,

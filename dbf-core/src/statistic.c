@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.11  2004/08/28 16:30:38  steinm
+ * - output header values in hex format
+ *
  * Revision 1.10  2004/08/27 09:42:51  steinm
  * - use gettext to output messages
  *
@@ -84,11 +87,11 @@ dbf_file_info (P_DBF *p_dbf)
 	printf(_("Date of last update...:"));
 	printf(" \t %s\n", dbf_GetDate(p_dbf));
 	printf(_("Number of records.....:"));
-	printf(" \t %d (%08xd)\n", dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
+	printf(" \t %d (0x%08x)\n", dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
 	printf(_("Length of header......:"));
-	printf(" \t %d (%04xd)\n", dbf_HeaderSize(p_dbf));
+	printf(" \t %d (0x%04x)\n", dbf_HeaderSize(p_dbf), dbf_HeaderSize(p_dbf));
 	printf(_("Record length.........:"));
-	printf(" \t %d (%04xd)\n", dbf_RecordLength(p_dbf));
+	printf(" \t %d (0x%04x)\n", dbf_RecordLength(p_dbf), dbf_RecordLength(p_dbf));
 	printf(_("Columns in file.......:"));
 	printf(" \t %d \n", dbf_NumCols(p_dbf));
 }

@@ -8,7 +8,7 @@
  *			Björn Berg, clergyman@gmx.de
  *
  *****************************************************************************
- * $Id: sql.c,v 1.18 2004/09/09 08:18:36 steinm Exp $
+ * $Id: sql.c,v 1.19 2005/02/25 09:20:55 steinm Exp $
  ****************************************************************************/
 
 #include "dbf.h"
@@ -281,7 +281,7 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 		while(--end != begin && *end == '\0')
 			;
 
-		if(begin == end) {
+		if(begin == end && *end == '\0') {
 			if(usecopy)
 				fputs("\\N", fp);
 			else
@@ -342,8 +342,8 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 			}
 
 		} else if (field_type == 'B' || field_type == 'F') {
+			char fmt[30];
 
-			char *fmt = malloc(20);
 			sprintf(fmt, "%%%d.%df", dbf_ColumnSize(p_dbf, i), dbf_ColumnDecimals(p_dbf, i));
 			fprintf(fp, fmt, *(double *)begin);
 			begin += dbf_ColumnSize(p_dbf, i);

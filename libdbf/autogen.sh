@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # autogen.sh glue for CMU Cyrus IMAP
-# $Id: autogen.sh,v 1.6 2005/03/06 22:11:55 rollinhand Exp $
+# $Id: autogen.sh,v 1.7 2005/03/10 19:33:52 steinm Exp $
 #
 # Requires: automake, autoconf, dpkg-dev
 set -e
@@ -36,8 +36,9 @@ echo " OK"
 
 aclocal
 autoheader
-#automake --verbose --force-missing --copy --add-missing --warnings=all
-autoreconf -i -f -v --warnings=all
+automake --verbose --copy --add-missing 
+glib-gettextize --force --copy
+#autoreconf -i -f -v --warnings=all
 libtoolize --copy --force
 intltoolize --copy --force
 autoconf

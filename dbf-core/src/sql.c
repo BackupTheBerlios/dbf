@@ -9,6 +9,10 @@
  *
  * History:
  * $Log: sql.c,v $
+ * Revision 1.15  2004/08/30 11:34:25  steinm
+ * - numeric NULL values (all spaces in the field) are converted to a NULL
+ *   sql value
+ *
  * Revision 1.14  2004/08/30 10:23:29  steinm
  * - rewrote large parts of writeSQLLine()
  * - added new functions to handle the option --empty-str-is-null
@@ -279,13 +283,14 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 		/*
 		 * Non-string data-fields are already right justified
-		 * and don't need right-trimming
+		 * and actually don't need right-trimming, but if we right trim
+		 * them as well, we will determine NULL values easily.
 		 */
-		if (isstring && trimright) {
+		if (!isstring || (isstring && trimright)) {
 			while (--end != begin && *end == ' ')
 				;
 			if (end == begin && *end == ' ') {
-				if(empty_str_is_null) {
+				if(empty_str_is_null || !isstring) {
 					fputs("NULL", fp);
 				} else {
 					putc('\'', fp);

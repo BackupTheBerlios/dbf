@@ -10,7 +10,7 @@
  ****************************************************************************
  * Functions to write CSV files
  ****************************************************************************
- * $Id: csv.c,v 1.18 2004/09/07 16:04:29 steinm Exp $
+ * $Id: csv.c,v 1.19 2005/03/02 16:04:05 steinm Exp $
  ***************************************************************************/
 
 #include <libdbf/libdbf.h>
@@ -96,6 +96,8 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
     const char *in /* unused */, const char *out /* unused */)
 {
 	int i, columns;
+	int needsencl;
+	const char *ptr;
 
 	columns = dbf_NumCols(p_dbf);
 
@@ -122,12 +124,23 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
 		while(end != begin && *end == '\0')
 			end--;
 
+		/* Check if enclosure chars are needed. This is the case if
+		 * the value contains the char for separating the columns
+		 */
+		ptr = begin;
+		needsencl = 0;
+		while(!needsencl && ptr <= end) {
+			if(*ptr == CSVSeparator)
+				needsencl = 1;
+			ptr++;
+		}
+
 		/*
 		 * addded to keep to CSV standard:
 		 * Text fields must be enclosed by quotation marks
 		 * - berg, 2003-09-08
 		 */
-		if ( isstring && CSVFileType == 'C' )
+		if ( needsencl )
 			putc(CSVEnclosure, fp);
 
 		while (*begin == ' ' && begin != end)
@@ -155,7 +168,7 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
 			}
 		}
 
-		if ( isstring && CSVFileType == 'C')
+		if ( needsencl )
 			putc(CSVEnclosure, fp);
 
 		if(i < columns-1)

@@ -8,6 +8,9 @@
  *
  * History:
  * $Log: statistic.c,v $
+ * Revision 1.8  2004/08/27 09:18:10  steinm
+ * - Output length of header and record
+ *
  * Revision 1.7  2004/08/27 05:44:11  steinm
  * - used libdbf for reading the dbf file
  *
@@ -73,10 +76,10 @@ dbf_file_info (P_DBF *p_dbf)
 			dbf_GetDate(p_dbf));
 	printf("Number of records.....: \t %d (%08xd)\n",
 			dbf_NumRows(p_dbf), dbf_NumRows(p_dbf));
-//	printf("Length of header......: \t %d (%04xd)\n",
-//			db->header_length, db->header_length);
-//	printf("Record length.........: \t %d (%04xd)\n",
-//			db->record_length, db->record_length);
+	printf("Length of header......: \t %d (%04xd)\n",
+			dbf_HeaderSize(p_dbf));
+	printf("Record length.........: \t %d (%04xd)\n",
+			dbf_RecordLength(p_dbf));
 	printf("Columns in file.......: \t %d \n",
 			dbf_NumCols(p_dbf));
 }

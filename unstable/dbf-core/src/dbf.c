@@ -3,39 +3,13 @@
  * Author: Bjoern Berg, June 2002
  * Email: clergyman@gmx.de
  * dbf Reader and Converter for dBASE files
- * Version 0.6
+ * Version 0.7
  *
  * History:
- * - Version 0.6
- *   minor changes by ross jones, features now sql support
- * - Version 0.5
- *   all SQL functions are commented due to compiler problems
- *	 see CHANGELOG for more details
- * - Version 0.5beta02 - 07.02.2003
- *   changes in help()
- *	 Big Endian Check Override Flag
- *   some minor bug fixes and feature enhancements
- * - Version 0.5beta01 - 01.02.2003
- *   support for Big Endian systems
- * - Version 0.3.1.1 - 30.11.2002
- *   code cleanups for MSVC, prevents some warnings
- * - Version 0.3.1 - 23.11.2002
- *   fixed memory leak (trying to convert a 284Mb file used 900Mb
- *   of memory and got killed) send in by:
- *   Andy Jeffries, Email: opensource@andyjeffries.co.uk
- * - Version 0.3.0 - [not yet released]
- *	 changed complete internal structure
- *   for more details see CHANGELOG
- * - Version 0.2.7
- *   code cleanups for MSVC
- * - Version 0.2.6 - 20.09.2002
- *   dbf.c splitted to dbf.c, statistic.h, iodbf.h, an_string.h
- *	 minor bugfixes in output
- * - Version 0.2.5 - 14.09.2002
- *	 Code Page support for umlauts and other special characters added (codepages.h)
- * - Version 0.2 - 28.07.2002
- *	 Converter for csv implemented
- *   function trim_spaces implemented
+ * - Version 0.7 - September 2003
+ *   completely rewritten version by Mikhail Teterin
+ *   for a complete list of nower and former changes please have a look at CHANGELOG
+ * [...]
  * - Version 0.1 - June 2002
  *	 Output for dBase3 databases, based on a version by Joachim Astel, 1989
  ************************************************************************************/
@@ -148,8 +122,8 @@ struct options {
 	},
 	{
 		"trim",	setSQLTrim,	writeSQLLine,	ARG_OPTION,
-		"{r|l|b} -- whether to trim the string fields in the SQL output from\n"
-		"\t\tright, left, or both",
+		"{r|l|b} -- whether to trim the string fields in the SQL output\n"
+		"\t\tfrom right, left, or both",
 		"not to trim"
 	},
 	{
@@ -161,7 +135,7 @@ struct options {
 	{
 		"separator",	setCSVSep,	NULL,		ARG_OPTION,
 		"{c} -- sets the separator character for the CSV format",
-		"to use ``;''"
+		"to use ``,''"
 	},
 	{
 		"view-info",	writeINFOHdr,	NULL,		ARG_NONE,
@@ -184,14 +158,15 @@ struct options {
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.6, (c) 2002 - 2003 by Bjoern Berg\n"
-	    "$Id: dbf.c,v 1.2 2003/08/26 13:50:35 rollin_hand Exp $\n", stderr);
-#	if defined(__DATE__) && defined(__TIME__)
+	fputs("dBase Reader and Converter V. 0.7, (c) 2002 - 2003 by Bjoern Berg\n"
+	    /*"$Id: dbf.c,v 1.3 2003/09/04 19:59:17 rollin_hand Exp $\n" */, stderr);
+/*#	if defined(__DATE__) && defined(__TIME__)
 	fputs("Built on "__DATE__" at "__TIME__"\n", stderr);
-#	endif
+#	endif */
 }
 
 /* Help */
+/* Displays a well known UNIX style command line options overview */
 static void
 usage(const char *pname)
 {

@@ -9,18 +9,23 @@
 * Version 0.5
 *
 * History:
+*	2003-02-24	jones	some minor changes 	
 * - Version 0.1 - February 2003
 *	 first implementation in dbf.c			
 ************************************************************************************/
+#ifndef _SQL_EXPORT_ 
+#define _SQL_EXPORT_
+
+static int field_type[MAX_FIELDS];
 
 /* writeSQLHeader */
 /* creates the SQL Header with the information provided by DB_FIELD */
-int writeSQLHeader (int handle,struct DB_FIELD *header[], int header_length,char *filename,char *export_filename)
+int writeSQLHeader (int handle,struct DB_FIELD *headers[], int header_length,char *filename,char *export_filename)
 {
 	int unsigned i,l1,l2;
 	char *q;
 	char buffer[65536], table[32],lg[12];	
-	
+
 	strncpy(table,export_filename,strlen(export_filename)-4);
 	memset(buffer, 0, 65535);
 	q = buffer;
@@ -67,11 +72,11 @@ int writeSQLHeader (int handle,struct DB_FIELD *header[], int header_length,char
 		strcat(q,"\n");
 	}
 	strcat(q,");\n");
+printf("Writing %s\n", buffer);
  	if((write(handle, buffer, strlen(buffer))) == -1) {
 		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
 	}
 
-	free(buffer);
 	return 0;
 }
 
@@ -124,7 +129,7 @@ int writeSQLLine (int handle,char *value, int header_length,char *filename, char
 	if((write(handle, buffer, strlen(buffer))) == -1) {
 		printf("Cannot write data to SQL File - Aborting!\n"); exit(1);
 	}
-	free(buffer);
-	free(NewString);
 	return 0;				
 }
+
+#endif

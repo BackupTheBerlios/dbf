@@ -5,6 +5,21 @@ address [anubisnet group]
 File sorted in order of date of release
 
 
+0.5		STABLE
+-
+- Support for Big Endian systems (PPC): stable
+- improvements in endian.h
+* dbf.c:
+	- Removed free() calls on static buffers. char buffer[565656];
+	- Caught return from csv_open in csvhandle.
+	- initialised export_filename to NULL to ensure later calls like if(export_filename)
+	  succeed correctly.
+* iodbf.h:
+	- Made csv_open return the handle that it generates instead of 1. 
+- minor/major bugfixes
+- and all changes made in the beta versions
+
+
 0.5beta02	DEVELOPMENT
 07.02.2003 (Release-Date)
 - Override flag for Big Endian systems implemented. Use --ppc to disable the system check

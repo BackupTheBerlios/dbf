@@ -12,6 +12,9 @@
  ****************************************************************************
  * History:
  * $Log: csv.c,v $
+ * Revision 1.9  2003/11/11 14:44:52  rollin_hand
+ * added cast operation for douple qoutes
+ *
  * Revision 1.8  2003/11/11 11:29:21  steinm
  * - added fold marks
  * - clean up header of file
@@ -129,7 +132,17 @@ writeCSVLine(FILE *fp, const struct DB_FIELD * header,
 				begin += (++header)->field_length;
 			} else {
 				do {
-					putc(*begin, fp);
+					char sign = *begin;	/* cast operations */
+					switch (sign) {						
+						case '\"':
+							putc('\\', fp);
+							putc('\"', fp);
+						break;	
+						default:					
+							putc(sign, fp);						
+					}				
+					
+					/*putc(*begin, fp);*/
 				} while (begin++ != end);
 			}	
 		}

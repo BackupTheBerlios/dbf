@@ -9,8 +9,8 @@
  *			Björn Berg, clergyman@gmx.de
  *
  * History:
- * 2003-11-05	berg			added support for field type 'B' and more decision
- *								automatism dep. on the source file 
+ * 2003-11-05	berg			added support for field type float, double, int and 
+ *								logical	 
  * 2003-10-30	rintala, berg	valid data fix for date values
  * 2003-09-08	teterin,berg	Fixing some errors in the produced SQL statements
  *								Support for MySQL and PostGres
@@ -100,6 +100,9 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 			    "dbf cannot convert this dBASE file. Memo fields are not supported.");
 				return 1;
 			break;
+			case 'I':
+				fputs("int", fp);
+			break;	
 			case 'N':
 				l1 = dbf->field_length;
 				l2 = dbf->field_decimals;
@@ -108,10 +111,12 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 				else
 					fprintf(fp, "numeric(%d, %d)",
 					    l1, l2);
+			break;			
+			case 'F':
+				l1 = dbf->field_length;
+				l2 = dbf->field_decimals;
+				fprintf(fp, "numeric(%d, %d)", l1, l2);
 			break;
-			case 'D':
-				fputs("date", fp);
-				break;
 			case 'B':
 				/*
 				 * In VisualFoxPro 'B' stands for double so it is an int value
@@ -120,15 +125,23 @@ int writeSQLHeader (FILE *fp, const struct DB_FIELD * header,
 					l1 = dbf->field_length;
 				    l2 = dbf->field_decimals;
 					fprintf(fp, "numeric(%d, %d)", l1, l2);
+				} else if ( dbversion == dBase3 ) {
+				    fprintf(stderr, "Invalid mode. "
+			    	"dbf cannot convert this dBASE file. Memo fields are not supported.");
+					return 1;
 				} 
-				break;
+				
+			break;
+			case 'D':
+				fputs("date", fp);
+			break;			
 			case 'L':
 				/* 
 				 * Type logical is not supported in SQL, you have to use number
 				 * resp. numeric to keep to the standard
 				 */
 				 fprintf(fp, "numeric(1,0)");
-				break;	 	
+			break;	 	
 			default:
 				fprintf(fp, "/* unsupported type ``%c'' */",
 				    dbf->field_type);
@@ -236,12 +249,17 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 		} else {		
 			
 			do	{ /* Output the non-empty string:*/				
-				char sign = *begin++;
+				
+				char sign = *begin++;	/* cast operations */
 				switch (sign) {
 					case '\'':
 						putc('\\', fp);
 						putc('\'', fp);
 						break;
+					case '\"':
+						putc('\\', fp);
+						putc('\"', fp);
+						break;	
 					default:					
 						putc(sign, fp);						
 				}				

@@ -1,76 +1,15 @@
 BUGS
 ====
 
-This file contains all bugs sent in by mail.
+In former times this file contained all bugs sent in by mail.
+All reported bugs by mail are now added to the bug trackers at
+Berlios. You can reach them over the following URLs:
 
-------------------------------------------------------------------------
+http://www.anubisnet.de/support
+http://developer.berlios.de/projects/dbf
 
-[dbf003] - 2003-04-14, 13:39 GMT+1
-Problem: maximum amount of 50 fields is not enough
-Status: open
+If you find a bug, please report it directly to the trackers.
+If you do not know how to handle the Bug-Tracking-System at
+Berlios, send an email to info@anubisnet.de.
 
-Bug Reporter: Uwe Steinmann, uwe@steinmann.cx
-Fixed by:
-
-Description:
-jetzt habe ich gerade das Problem gefunden. Du begrenzt die maximale
-Zahl der Felder auf 50, ohne bei Ueberschreitung eine Warnung auszugeben.
-Was spricht dagegegen fuer die globale variable header einfach
-den Speicher header_length * size (DB_FIELD *) zu allozieren?
-
--------------------------------------------------------------------------
-
-[dbf002] - 2002-12-04, 7:38pm
-Problem: dbf is not endianness-save
-Status: fixed
-
-Bug Reporter: Uwe Steinmann, uwe@steinmann.cx
-Fixed by: Bjoern Berg
-
-Description:
-Einfaches Beispiel: Die folgenden Hex-Werte sind die Ausgabe von
-'od -x <dbf-datei>'
-
-0000000 0302 0b0d 0100 0000 0109 8301 0000 0000
-0000020 0000 0000 0000 0000 0000 0000 0000 0000
-
-Und dies ist was dbf ausgibt:
-
--- File statistics
-dBase version.........:          3 
-Date of last update...:          02-11-13
-Number of records.....:          16777216
-Length of header......:          265
-Record length.........:          33537
-Columns in file.......:          8
-Rows in file..........:          16777216
-
-Die '0100 0000' der ersten Zeile der od-Ausgabe ist die Anzahl
-der Datensätze. Auf Intel ist das eine 1, auf PPC aber leider nicht,
-wie man in der Ausgabe von dbf sieht.
-Auch die Länge des Headers und Datensatzlänge passen. Die Datei ist
-nämlich nur 2692 Byte lang und das ist gerade die Summe aus 2305 + 387
-(oder in hex 0x0901 + 0x0183) Auf PPC werden diese Hex-Werte aber
-als 0x0109 und 0x8301 gelesen, was auch irgendwie sinnig ist, denn so
-stehen sie auch auf der Platte. Intel meint aber alles in die andere
-Richtung lesen zu müssen. 
-
--------------------------------------------------------------------------
-
-
-[dbf001] - 2002-11-22, 2:42pm
-Problem: memory leak converting large files
-Status: fixed
-
-Bug Reporter: Andy Jeffries
-Fixed by: Andy Jeffries, opensource@andyjeffries.co.uk
-
-Description:
-I had a problem trying to convert a DBF file that was about 280Mb in size. 
-Basically you had a memory leak with your dynamically allocated
-buffers.  C isn't my first language, but I have replaced the dynamically
-allocated buffers with static ones and it now still works (as long as
-the fields don't go over the buffer, 64Kb, although you can change it in
-the array definition and the memset calls).
-
-[form the original mail]
+Thank you.

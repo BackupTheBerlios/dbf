@@ -27,6 +27,8 @@
 #include "csv.h"
 #include "sql.h"
 
+#define DBF_FILE_CHECK 1
+
 #define FoxBase 0x02			/* Code for FoxBase */
 #define FoxBasePlus 0x03		/* Code for FoxBasePlus, same as for dBase III */
 #define dBase3 0x03				/* Code for dBase III */

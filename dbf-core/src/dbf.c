@@ -3,11 +3,16 @@
  ******************************************************************************
  * Author: Bjoern Berg <clergyman@gmx.de>
  * dbf Reader and Converter for dBASE files
- * Version 0.8.2
+ * Version 0.9
  *
  ******************************************************************************
  * History:
  * $Log: dbf.c,v $
+ * Revision 1.12  2003/12/03 06:44:13  steinm
+ * - checks if filesize equals calculated file size
+ * - Paths to a backlink database are taken into account for header_length
+ *   calculation but not for processing
+ *
  * Revision 1.11  2003/12/02 09:28:05  steinm
  * src/tables.h
  *
@@ -27,6 +32,11 @@
  * - default options can be set to NULL and are not displayed in help
  *
  ******************************************************************************/
+ 
+ /** TODO **/
+ /* Currently we do not know how to handle field subrecords in FoxPro and dBASE 4
+  * backlink_exists() works only if no field subrecords are in the table definition (*.dbf)
+  */
 
 #include <assert.h>
 #include "dbf.h"
@@ -44,9 +54,24 @@ unsigned int keep_deleted = 0;
 static void
 banner()
 {
-	fputs("dBase Reader and Converter V. 0.8.2, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
+	fputs("dBase Reader and Converter V. 0.9, (c) 2002 - 2003 by Bjoern Berg\n", stderr);	   
 }
 
+/* dbf_backlink_exists() {{{
+ * checks if a backlink is at the end of the field definition, this backlink is about 263 byte
+ */
+static int dbf_backlink_exists() 
+{
+	int number_of_fields;
+	
+	number_of_fields = (rotate2b(db->header_length) - 296) / 32;	
+	if (number_of_fields != db->records) {
+		return 1;
+	}
+	
+	return 0;	
+}
+/* }}} */
 
 /* dbf_check {{{
  * checks if dbf file is valid
@@ -320,17 +345,27 @@ main(int argc, char *argv[])
 
 	dbfhandle = dbf_open(filename);
 	dbf_read_header(dbfhandle, filename);
+	
 	/* File size reported by the operating system must match the logical file size. 
 	 * Logical file size = ( Length of header + ( Number of records * Length of each record ) )
 	 * Exception: Clipper and Visual FoxPro
 	 */
-	if ( ! dbf_check(dbfhandle, filename) ) {
+	if ( ! dbf_check(dbfhandle, filename) && DBF_FILE_CHECK ) {
 		fprintf(stderr, "This type of database is currently not supported.\n");
 		fprintf(stderr, "Maybe your DB is of type Visual FoxPro or dBASE 7.\n");
 		exit(1);
 	}
 	
-	header_length = rotate2b(db->header_length) / 32;
+	/* This simply decision must be verified with FoxPro and dBASE 4 versions
+	 * 2003-12-02, berg 
+	 */
+	if ( dbf_backlink_exists() ) {
+		/* 263 bytes backlink info		 		 
+		 */
+		header_length = (rotate2b(db->header_length) - 263) / 32;		
+	} else {	
+		header_length = rotate2b(db->header_length) / 32;
+	}	
 
 	/*
 	 * Scan through arguments looking for options
@@ -392,9 +427,16 @@ main(int argc, char *argv[])
 		output = stdout;
 	else
 		output = export_open(export_filename);
-	header_length = rotate2b(db->header_length) / 32;
-	record_length = rotate2b(db->record_length);
-	getHeaderValues(dbfhandle,filename,header_length);
+		/* This simply decision must be verified with FoxPro and dBASE 4 versions
+		 * 2003-12-02, berg 
+		 */
+		 if ( dbf_backlink_exists() ) {		
+			 header_length = (rotate2b(db->header_length) - 263) / 32;		
+		 } else {	
+			 header_length = rotate2b(db->header_length) / 32;
+		 }	
+		record_length = rotate2b(db->record_length);
+		getHeaderValues(dbfhandle,filename,header_length);
 
 	/*
 	 * Call the main header-method, which we skipped during the option parsing

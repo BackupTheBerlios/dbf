@@ -6,7 +6,7 @@
  * Version 0.9
  *
  ******************************************************************************
- * $Id: dbf.c,v 1.29 2004/08/30 12:19:25 steinm Exp $
+ * $Id: dbf.c,v 1.30 2004/09/07 15:53:12 steinm Exp $
  *****************************************************************************/
 
  /** TODO **/
@@ -14,16 +14,26 @@
   * backlink_exists() works only if no field subrecords are in the table definition (*.dbf)
   */
 
+#include <stdlib.h>
+#include <string.h>
+#include <libgen.h>
 #include <assert.h>
 #include "dbf.h"
+#include "statistic.h"
+#include "csv.h"
+#include "sql.h"
+#include "odbf.h"
 
 static struct DB_FSIZE *fsz;
 
 static int convert = 1;
 static int keep_deleted = 0;
 static int dbc = 0;   /* 0 = no backlink, 1 = backlink */
+static int startrecord = 1;
+static int numrecords = -1;
+static int quiet = 0;
 
-unsigned int verbosity = 1;
+unsigned int verbosity = 0;
 char *tablename = NULL;
 
 
@@ -156,6 +166,34 @@ dbf_check(int fh, const char *file)
 #endif
 /* }}} */
 
+/* setStartRecord() {{{
+ * set the first record to read
+ */
+static int
+setStartRecord(FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *startnum)
+{
+	startrecord = atoi(startnum);
+	return 0;
+}
+/* }}} */
+
+/* setNumRecords() {{{
+ * set the number of records to read
+ */
+static int
+setNumRecords(FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *recordnum)
+{
+	numrecords = atoi(recordnum);
+	if(numrecords <= 0) {
+		fprintf(stderr, _("Number of records to output must be greater zero."));
+		fprintf(stderr, "\n");
+	}
+	return 0;
+}
+/* }}} */
+
 /* setTablename() {{{
  * set the name of the table for sql output
  */
@@ -187,6 +225,17 @@ setKeepDel (FILE *output, P_DBF *p_dbf,
     const char *filename, const char *level)
 {
 	keep_deleted = 1;
+	return 0;
+}
+/* }}} */
+
+/* setQuiet() {{{
+ */
+static int
+setQuiet (FILE *output, P_DBF *p_dbf,
+    const char *filename, const char *level)
+{
+	quiet = 1;
 	return 0;
 }
 /* }}} */
@@ -267,18 +316,23 @@ struct options {
 	const char	*help, *def_behavior;
 } options[] = {
 	{
-		"--sql", writeSQLHeader,	writeSQLFooter, writeSQLLine,	ARG_OUTPUT,
+		"--sql", writeSQLHeader, writeSQLFooter, writeSQLLine, ARG_OUTPUT,
 		"{filename} -- convert file into sql statements",
 		NULL
 	},
 	{
-		"--trim", setSQLTrim,	NULL, NULL,	ARG_OPTION,
+		"--trim", setSQLTrim, NULL, NULL, ARG_OPTION,
 		"{r|l|b} -- trim char fields in sql output (right, left, both)",
 		"not to trim"
 	},
 	{
-		"--csv", writeCSVHeader,	NULL, writeCSVLine,	ARG_OUTPUT,
+		"--csv", writeCSVHeader, NULL, writeCSVLine, ARG_OUTPUT,
 		"{filename} -- convert file into \"comma separated values\"",
+		NULL
+	},
+	{
+		"--dbf", writeDBFHeader, writeDBFFooter, writeDBFLine, ARG_OUTPUT,
+		"{filename} -- convert file into dBASE file",
 		NULL
 	},
 	{
@@ -290,6 +344,16 @@ struct options {
 		"--tablename", setTablename, NULL, NULL, ARG_OPTION,
 		"{name} -- set name of the table for sql output",
 		"the name of the export file"
+	},	
+	{
+		"--start-record", setStartRecord, NULL, NULL, ARG_OPTION,
+		"{number} -- sets first record to read",
+		"1, the first record"
+	},	
+	{
+		"--num-records", setNumRecords, NULL, NULL, ARG_OPTION,
+		"{number} -- sets number of records to read",
+		"all"
 	},	
 	{
 		"--view-info", writeINFOHdr, NULL, NULL, ARG_NONE,
@@ -325,6 +389,11 @@ struct options {
 		"--keepdel", setKeepDel, NULL, NULL, ARG_NONE,
 		"output also deleted records",
 		"to skip deleted records"
+	},
+	{
+		"--quiet", setQuiet, NULL, NULL, ARG_NONE,
+		"do not out anything but the record data",
+		"to at least output warnings"
 	},
 	{
 		"--debug", setVerbosity, NULL, NULL, ARG_OPTION,
@@ -379,7 +448,7 @@ main(int argc, char *argv[])
 {
 	P_DBF *p_dbf;
 	FILE		*output = NULL;
-	int		 header_length, record_length, i;
+	int		    record_length, i;
 	const char	*filename, *export_filename = NULL;
 	headerMethod	 writeHeader = NULL;
 	footerMethod	 writeFooter = NULL;
@@ -522,6 +591,7 @@ main(int argc, char *argv[])
 
 	record_length = dbf_RecordLength(p_dbf);
 	if (writeLine) {
+		int endrecord;
 		if ((record = malloc(record_length + 1)) == NULL)	{
 			perror("malloc"); exit(1);
 		}
@@ -533,8 +603,31 @@ main(int argc, char *argv[])
 			fprintf(stderr, "\n");
 		}
 
-		while (0 <= (i = dbf_ReadRecord(p_dbf, record, record_length)))
+		if(0 > (i = dbf_SetRecordOffset(p_dbf, startrecord))) {
+			fprintf(stderr, "Cannot set start offset %d. Error Code %d.", startrecord, i);
+			fprintf(stderr, "\n");
+			exit(1);
+		}
+		if(numrecords < 1)
+			numrecords = dbf_NumRows(p_dbf);
+		endrecord = i + numrecords;
+		if(endrecord > dbf_NumRows(p_dbf)) {
+			endrecord = dbf_NumRows(p_dbf);
+			if(!quiet) {
+				fprintf(stderr, _("Will only output %d rows, because there are no more rows in the dBASE file."), endrecord-i);
+				fprintf(stderr, "\n");
+			}
+		}
+		if(verbosity >= 1) {
+			fprintf(stderr, _("Output records from row %d to %d."), i+1, endrecord);
+			fprintf(stderr, "\n");
+		}
+		while ((0 <= (i = dbf_ReadRecord(p_dbf, record, record_length))) && (i < endrecord))
 		{
+			if(verbosity >= 1) {
+				fprintf(stderr, _("Row %i."), i+1);
+				fprintf(stderr, "\n");
+			}
 			dataset_deleted = 0;
 			if (record[0] == '*' ) {
 				dataset_deleted = 1;
@@ -548,10 +641,10 @@ main(int argc, char *argv[])
 				/* automatically convert options */
 				if (convert)
 					cp850andASCIIconvert(record);
-				writeLine(output, p_dbf, record+1, header_length,
+				writeLine(output, p_dbf, record+1, record_length-1,
 			    	filename, export_filename);
 			} else if ( verbosity >=1 && record[0] != 0x1A) {
-				fprintf(stderr, _("The row %i is set to 'deleted'."), i);
+				fprintf(stderr, _("The row %i is set to 'deleted'."), i+1);
 				fprintf(stderr, "\n");
 			}
 		}

@@ -205,7 +205,7 @@ writeSQLLine (FILE *fp, const struct DB_FIELD * header,
 			if (trimright) {
 				while (--end != begin && *end == ' ')
 					/* Nothing */;
-					if (end == begin) { 
+					if (end == begin && *end == ' ') { 
 						goto endstring;	
 					}
 				end++;

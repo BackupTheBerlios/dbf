@@ -10,7 +10,7 @@
  ****************************************************************************
  * Functions to write CSV files
  ****************************************************************************
- * $Id: csv.c,v 1.19 2005/03/02 16:04:05 steinm Exp $
+ * $Id: csv.c,v 1.20 2005/05/10 17:06:03 rollinhand Exp $
  ***************************************************************************/
 
 #include <libdbf/libdbf.h>
@@ -164,7 +164,7 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
 							putc(CSVEnclosure, fp);
 					}
 					putc(*begin, fp);
-				} while (begin++ != end);
+				} while (begin++ < end);
 			}
 		}
 

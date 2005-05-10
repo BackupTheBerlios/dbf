@@ -13,3 +13,4 @@ install-sh
 dbf.spec
 libtool
 stamp-h*
+.project

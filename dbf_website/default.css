@@ -1,46 +1,62 @@
 body {
-  background-color:#6688AA;
-  font:1.0em sans-serif;
-  color:#000;
-  background:url(pics/verlauf.jpg) repeat-x #6688AA;  
+  margin:0;
+  background:url(pics/verlauf.jpg) repeat-x #a8d01a;
+  font:12px sans-serif;  
 }    
 
-/*** Style Definitionen für den Container ***********************/
+/*** Style Definitionen fuer den Container ***********************/
 div#container {  
-  position:relative;
+  position:absolute;
   background-color:#EEE;
-  width:640px;  
-  margin:25px auto 25px auto;  
+  width:640px;
+  height:480px; 
+  top:50%;
+  left:50%;
+  margin-left:-320px;
+  margin-top:-240px;
+  border:1px dashed #3eb00d;
 }
 
-/*** Style Definitionen für den Bereich des Haupttextes (main) **/
-div#main {    
+/*** Style Definitionen fuer den Bereich des Haupttextes (main) **/
+div#main {
   background-color:#FFF;
-  width:480px;
-  float:left;
+  position:absolute;
+  width:470px;
+  height:450px;
+  top:50%;
+  left:50%;
+  margin-top:-240px;
+  margin-left:-320px;
   padding:5px;
+  overflow:auto;
 }
 
-/*** Style Definitionen für den Navigationsbereich (block) ******/
+/*** Style Definitionen fuer den Navigationsbereich (block) ******/
 div#block {    
   background-color:#EEE;  
-  width:146px;
-  float:left; 
+  position:absolute;
+  width:155px;
+  height:460px;
+  top:50%;
+  left:50%;
+  margin-top:-240px;
+  margin-left:160px;
 }
 
 #block ul {
   list-style-type:none;
-  text-align:left;
-  padding-left:5px;
+  margin:0px;
+  padding:2px;
 }
 
 #block li {   
-  text-align:left;
+  padding:5px;
+  border-bottom:1px solid #CCC;
 }
 
 #block a {
   text-decoration:none;
-  color:#0000FF;
+  color:#007700;
 }
 
 #block a:hover {
@@ -49,19 +65,27 @@ div#block {
 
 div#footer {
   background-color:#BBB; 
-  padding:5px;
   text-align:center;
-  clear:both;  
+  position:absolute;
+  width:636px;
+  height:16px;
+  top:50%;
+  left:50%;
+  margin-top:220px;
+  margin-left:-320px;
+  padding:2px;
+  font:10px sans-serif;
 }
 
-/*** Style Definitionen für den Announcement Bereich auf der Startseite */
+/*** Style Definitionen fuer den Announcement Bereich auf der Startseite */
 p#announcement {
   background-color:#EE9292;
   border:solid 1px #FF0000;
   padding:5px;
+  font:11px sans-serif;
 }
 
-/*** Übergreifende Formate *******************************************/
+/*** Uebergreifende Formate *******************************************/
 h3 {
   font:1.0em sans-serif;
   font-weight:bold;
@@ -71,10 +95,10 @@ h4 {
   font:1.0em sans-serif;
   font-weight:bold;
   color:#AAA;
-  width:100%;
+  margin-top:10px;
+  margin-bottom:5px;
   margin-left:5px;
-/*  background-color:#DDD;
-  padding:4px;*/
+  padding-top:4px;	
 }
 
 

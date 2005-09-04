@@ -82,7 +82,7 @@ p#announcement {
   background-color:#EE9292;
   border:solid 1px #FF0000;
   padding:5px;
-  font:11px sans-serif;
+  font:11px monospace;
 }
 
 /*** Uebergreifende Formate *******************************************/

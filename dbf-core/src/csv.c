@@ -10,7 +10,7 @@
  ****************************************************************************
  * Functions to write CSV files
  ****************************************************************************
- * $Id: csv.c,v 1.20 2005/05/10 17:06:03 rollinhand Exp $
+ * $Id: csv.c,v 1.21 2006/04/10 15:07:21 steinm Exp $
  ***************************************************************************/
 
 #include <libdbf/libdbf.h>
@@ -130,7 +130,7 @@ writeCSVLine(FILE *fp, P_DBF *p_dbf,
 		ptr = begin;
 		needsencl = 0;
 		while(!needsencl && ptr <= end) {
-			if(*ptr == CSVSeparator)
+			if(*ptr == CSVSeparator || *ptr == CSVEnclosure)
 				needsencl = 1;
 			ptr++;
 		}

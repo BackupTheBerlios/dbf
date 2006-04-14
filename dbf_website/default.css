@@ -1,88 +1,72 @@
 body {
   margin:0;
   background:url(pics/verlauf.jpg) repeat-x #a8d01a;
-  font:12px sans-serif;  
+  font:11px sans-serif;  
 }    
 
 /*** Style Definitionen fuer den Container ***********************/
 div#container {  
   position:absolute;
   background-color:#EEE;
-  width:640px;
-  height:480px; 
+  width:595px;
+  height:295px; 
   top:50%;
   left:50%;
-  margin-left:-320px;
-  margin-top:-240px;
-  border:1px dashed #3eb00d;
+  margin-left:-298px;
+  margin-top:-148px;
+}
+
+div#left {
+  background:url(pics/dbase_converter.png) no-repeat #FFF;
+  position:absolute;
+  width:64px;
+  height:295px;  
+  top:0px;
+  left:0px;
+  text-align:left;
 }
 
 /*** Style Definitionen fuer den Bereich des Haupttextes (main) **/
 div#main {
   background-color:#FFF;
   position:absolute;
-  width:470px;
-  height:450px;
-  top:50%;
-  left:50%;
-  margin-top:-240px;
-  margin-left:-320px;
+  width:393px;
+  height:285px; 
+  top:0px;
+  left:192px;
   padding:5px;
+  text-align:left;
   overflow:auto;
 }
 
 /*** Style Definitionen fuer den Navigationsbereich (block) ******/
-div#block {    
+div#main_nav {    
   background-color:#EEE;  
   position:absolute;
-  width:155px;
-  height:460px;
-  top:50%;
-  left:50%;
-  margin-top:-240px;
-  margin-left:160px;
+  width:128px;
+  height:295px;
+  top:0px;
+  left:64px;
 }
 
-#block ul {
+#main_nav ul {
   list-style-type:none;
   margin:0px;
   padding:2px;
 }
 
-#block li {   
+#main_nav li {   
   padding:5px;
   border-bottom:1px solid #CCC;
 }
 
-#block a {
+#main_nav a {
   text-decoration:none;
   color:#007700;
 }
 
-#block a:hover {
+#main_nav a:hover {
   text-decoration:underline;
-}
-
-div#footer {
-  background-color:#BBB; 
-  text-align:center;
-  position:absolute;
-  width:636px;
-  height:16px;
-  top:50%;
-  left:50%;
-  margin-top:220px;
-  margin-left:-320px;
-  padding:2px;
-  font:10px sans-serif;
-}
-
-/*** Style Definitionen fuer den Announcement Bereich auf der Startseite */
-p#announcement {
-  background-color:#EE9292;
-  border:solid 1px #FF0000;
-  padding:5px;
-  font:11px monospace;
 }
 
 /*** Uebergreifende Formate *******************************************/

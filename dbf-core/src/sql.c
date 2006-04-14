@@ -8,7 +8,7 @@
  *			Björn Berg, clergyman@gmx.de
  *
  *****************************************************************************
- * $Id: sql.c,v 1.19 2005/02/25 09:20:55 steinm Exp $
+ * $Id: sql.c,v 1.20 2006/04/14 12:28:12 rollinhand Exp $
  ****************************************************************************/
 
 #include "dbf.h"
@@ -346,7 +346,7 @@ writeSQLLine (FILE *fp, P_DBF *p_dbf,
 
 			sprintf(fmt, "%%%d.%df", dbf_ColumnSize(p_dbf, i), dbf_ColumnDecimals(p_dbf, i));
 			fprintf(fp, fmt, *(double *)begin);
-			begin += dbf_ColumnSize(p_dbf, i);
+			begin += dbf_ColumnSize(p_dbf, i);		
 
 		} else {
 

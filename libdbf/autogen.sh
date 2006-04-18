@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # autogen.sh glue for CMU Cyrus IMAP
-# $Id: autogen.sh,v 1.8 2006/04/14 12:22:19 rollinhand Exp $
+# $Id: autogen.sh,v 1.9 2006/04/18 19:48:36 rollinhand Exp $
 #
 # Requires: automake, autoconf, dpkg-dev
 set -e
@@ -16,7 +16,7 @@ test "${OSTYPE}" = "msys" && {
 }
 
 # Unix-based operating systems
-test ${OSTYPE} != "msys" && {
+test ${OSTYPE} != "msys" -a ${OSTYPE} != "cygwin" && {
 	echo "Detected Operating System: ${OSTYPE}"
 	echo -n "Check Build Environment..."
 	for tool in aclocal autoreconf autoheader automake libtoolize intltoolize autoconf; do
@@ -46,20 +46,18 @@ test ${OSTYPE} != "msys" && {
 #	chmod 755 ${i}
 #done
 
+libtoolize --copy --force
 aclocal
 autoheader
 automake --verbose --copy --add-missing 
-# -- BERG: Currently not possible with MinGW and MSYS on Windows
-#glib-gettextize --force --copy
+glib-gettextize --force --copy
 #autoreconf -i -f -v --warnings=all
-libtoolize --copy --force
-# -- BERG: Currently not possible with MinGW and MSYS on Windows
-#intltoolize --copy --force
+intltoolize --copy --force
 autoconf
 
 
 # For the Debian build
-test -d debian -a "${OSTYPE}" != "msys" && {
+test -d debian -a "${OSTYPE}" != "msys" -a "${OSTYPE}" != "cygwin" && {
 	# Kill executable list first
 	`rm -f debian/executable.files`
 
